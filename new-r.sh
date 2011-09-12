@@ -6,12 +6,13 @@ fi
 
 for f in $@; do
     echo \
-'/* ------------------------------------------------------------------ */
-/* The Computer Language Shootout                                     */
-/* http://shootout.alioth.debian.org/                                 */
-/*                                                                    */
-/* Contributed by Leo Osvald                                          */
-/* ------------------------------------------------------------------ */
-#!/bin/bash
-tail +3 "$0" | R --slave --args $@; exit $?' > "$f"
+'#!/bin/bash
+tail +3 "$0" | R --slave --args $@; exit $?
+# ------------------------------------------------------------------
+# The Computer Language Shootout
+# http://shootout.alioth.debian.org/
+#
+# Contributed by Leo Osvald
+# ------------------------------------------------------------------' >"$f"
+    chmod +x "$f"
 done

@@ -7,47 +7,29 @@ tail +3 "$0" | R --slave --args $@; exit $?
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-matrix_apply <- function(m, f) {
-    m2 <- m
-    for (r in seq(nrow(m2)))
-        for (c in seq(ncol(m2)))
-            m2[[r, c]] <- f(r, c)
-    return(m2)
-}
-
-eval_A <- function(i, j) 1 / ((i + j) * (i + j + 1) / 2 + i + 1)
-
+eval_A <- function(i, j) 1 / ((i + j - 2) * (i + j - 1) / 2 + i)
 eval_A_times_u <- function(u, Au) {
-    eval_A_mat <- t(g_eval_A_mat)
-    Au <- Au + u %*% eval_A_mat
-    return(Au)
+    # g_eval_At_mat <- t(outer(seq(n), seq(n), FUN=eval_A))
+    return(u %*% g_eval_At_mat)
 }
-
 eval_At_times_u <- function(u, Au) {
-    eval_A_mat <- g_eval_A_mat
-    Au <- Au + u %*% eval_A_mat
-    return(Au)
+    # g_eval_A_mat <- outer(seq(n), seq(n), FUN=eval_A)
+    return(u %*% g_eval_A_mat)
 }
+eval_AtA_times_u <- function(u, AtAu)
+    eval_At_times_u(
+	eval_A_times_u(u, rep(0, length(u))),
+	AtAu)
 
-eval_AtA_times_u <- function(u, AtAu) {
-    return(eval_At_times_u(eval_A_times_u(u, rep(0, length(u))), AtAu))
-}
-
-
-f <- file("spectral-norm.in.03", "r")
-n <- as.integer(scan(f, double(0), nmax=1, quiet=TRUE))
-cat("n = ", n)
-
+n <- as.double(commandArgs(trailingOnly=TRUE))
+g_eval_A_mat <- outer(seq(n), seq(n), FUN=eval_A)
+g_eval_At_mat <- t(g_eval_A_mat)
 u <- rep(1, n)
 v <- rep(0, n)
-g_eval_A_mat <- matrix_apply(diag(n), eval_A)
-
 for (itr in seq(10)) {
-    cat("itr = ", itr, "\n")
-    eval_AtA_times_u(u, v)
-    u <- rep(0, n)
-    eval_AtA_times_u(v, u)
+    v <- eval_AtA_times_u(u, v)
+    u <- eval_AtA_times_u(v, rep(0, n))
 }
 
-vBv <- 0
-vv <- 0
+options(digits=10)
+cat(sqrt(sum(u * v) / sum(v * v)), "\n")

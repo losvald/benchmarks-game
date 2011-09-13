@@ -1,0 +1,53 @@
+#!/bin/bash
+tail +3 "$0" | R --slave --args $@; exit $?
+# ------------------------------------------------------------------
+# The Computer Language Shootout
+# http://shootout.alioth.debian.org/
+#
+# Contributed by Leo Osvald
+# ------------------------------------------------------------------
+
+matrix_apply <- function(m, f) {
+    m2 <- m
+    for (r in seq(nrow(m2)))
+        for (c in seq(ncol(m2)))
+            m2[[r, c]] <- f(r, c)
+    return(m2)
+}
+
+eval_A <- function(i, j) 1 / ((i + j) * (i + j + 1) / 2 + i + 1)
+
+eval_A_times_u <- function(u, Au) {
+    eval_A_mat <- t(g_eval_A_mat)
+    Au <- Au + u %*% eval_A_mat
+    return(Au)
+}
+
+eval_At_times_u <- function(u, Au) {
+    eval_A_mat <- g_eval_A_mat
+    Au <- Au + u %*% eval_A_mat
+    return(Au)
+}
+
+eval_AtA_times_u <- function(u, AtAu) {
+    return(eval_At_times_u(eval_A_times_u(u, rep(0, length(u))), AtAu))
+}
+
+
+f <- file("spectral-norm.in.03", "r")
+n <- as.integer(scan(f, double(0), nmax=1, quiet=TRUE))
+cat("n = ", n)
+
+u <- rep(1, n)
+v <- rep(0, n)
+g_eval_A_mat <- matrix_apply(diag(n), eval_A)
+
+for (itr in seq(10)) {
+    cat("itr = ", itr, "\n")
+    eval_AtA_times_u(u, v)
+    u <- rep(0, n)
+    eval_AtA_times_u(v, u)
+}
+
+vBv <- 0
+vv <- 0

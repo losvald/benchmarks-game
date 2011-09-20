@@ -38,7 +38,7 @@ match_count <- function(ms) {
     return(ifelse(l > 1, l, ifelse(fst != -1L, fst, 0)))
 }
 
-f <- file("regex-dna.in.100000", "r")
+f <- file("regex-dna.in.50000", "r")
 str <- paste(c(readLines(f), ""), collapse="\n")
 close(f)
 
@@ -50,6 +50,6 @@ for (pat in pattern1)
     cat(pat, match_count(gregexpr(pat, str, useBytes=TRUE)), "\n")
 
 for (i in 1:nrow(pattern2))
-    str <- gsub(pattern2[[i, 1]], pattern2[[i, 2]], str, useBytes=TRUE)
+    str <- gsub(pattern2[[i, 1]], pattern2[[i, 2]], str, perl=TRUE, useBytes=TRUE)
 
-cat(len1, len2, nchar(str), sep="\n")
+cat("", len1, len2, nchar(str), sep="\n")

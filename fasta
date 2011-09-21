@@ -72,7 +72,6 @@ random_fasta <- function(genelist, count) {
         rs <- double(line)
         for (i in 1:line)
           rs[[i]] <- myrandom(1)
-        print(rs)
 
 	cat(genelist[2, colSums(outer(psum, rs, "<")) + 1], "\n", sep='')
 	count <- count - line

@@ -7,11 +7,10 @@ tail -n +3 "$0" | R --slave --args $@; exit $?
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 width <- 60L
-myrandom_last <- 42
+myrandom_last <- 42L
 myrandom <- function(m) {
-    # BUG: need to implement workaround for unsigned arithmetic
-    myrandom_last <<- (myrandom_last * 3877L * 29573L) %% 139968L
-    return(m * myrandom_last / 139968L)
+    myrandom_last <<- (myrandom_last * 3877L + 29573L) %% 139968L
+    return(m * myrandom_last / 139968)
 }
 
 alu <- paste(

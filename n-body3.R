@@ -1,5 +1,3 @@
-#!/bin/bash
-tail -n +3 "$0" | R --slave --args $@; exit $?
 # ------------------------------------------------------------------
 # The Computer Language Shootout
 # http://shootout.alioth.debian.org/

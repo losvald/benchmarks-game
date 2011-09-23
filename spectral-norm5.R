@@ -1,5 +1,3 @@
-#!/bin/bash
-tail -n +3 "$0" | R --slave --args $@; exit $?
 # ------------------------------------------------------------------
 # The Computer Language Shootout
 # http://shootout.alioth.debian.org/
@@ -9,17 +7,23 @@ tail -n +3 "$0" | R --slave --args $@; exit $?
 
 eval_A <- function(i, j) 1 / ((i + j) * (i + j + 1) / 2 + i + 1)
 eval_A_times_u <- function(u) {
-    ret <- rep(0, n)
-    for (i in 1:n)
+    ret <- double(n)
+    for (i in 0:n1) {
+	eval_A_col <- double(n)
 	for (j in 0:n1)
-	    ret[[i]] <- ret[[i]] + u[[j + 1]] * eval_A(i - 1, j)
+	    eval_A_col[[j + 1]] <- eval_A(i, j)
+	ret[[i + 1]] <- u %*% eval_A_col
+    }
     return(ret)
 }
 eval_At_times_u <- function(u) {
-    ret <- rep(0, n)
-    for (i in 1:n)
+    ret <- double(n)
+    for (i in 0:n1) {
+	eval_At_col <- double(n)
 	for (j in 0:n1)
-	    ret[[i]] <- ret[[i]] + u[[j + 1]] * eval_A(j, i - 1)
+	    eval_At_col[[j + 1]] <- eval_A(j, i)
+	ret[[i + 1]] <- u %*% eval_At_col
+    }
     return(ret)
 }
 eval_AtA_times_u <- function(u)

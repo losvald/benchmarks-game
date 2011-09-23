@@ -1,5 +1,3 @@
-#!/bin/bash
-tail -n +3 "$0" | R --slave --args $@; exit $?
 # ------------------------------------------------------------------
 # The Computer Language Shootout
 # http://shootout.alioth.debian.org/
@@ -10,9 +8,13 @@ tail -n +3 "$0" | R --slave --args $@; exit $?
 tree <- function(item, depth) {
     if (depth == 0L)
         return(c(item, NA, NA))
+    # it is ridiculous that this doesn't help
+    next_depth <- depth - 1L
+    right_item <- 2L * item
+    left_item <- right_item - 1L
     return(list(item,
-        tree(2L * item - 1L, depth - 1L),
-        tree(2L * item, depth - 1L)))
+                tree(left_item, next_depth),
+                tree(right_item, next_depth)))
 }
 
 check <- function(tree)

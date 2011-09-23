@@ -1,5 +1,3 @@
-#!/bin/bash
-tail -n +3 "$0" | R --slave --args $@; exit $?
 # ------------------------------------------------------------------
 # The Computer Language Shootout
 # http://shootout.alioth.debian.org/
@@ -32,9 +30,8 @@ long_lived_tree <- tree(0, max_depth)
 
 for (depth in min_depth:max_depth) {
     iterations <- as.integer(2^(max_depth - depth + min_depth))
-    check_sum <- 0L
-    for (i in 1:iterations)
-        check_sum <- check_sum + check(tree(i, depth)) + check(tree(-i, depth))
+     check_sum <- sum(sapply(1:iterations, function(i)
+                            check(tree(i, depth)) + check(tree(-i, depth))))
     cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check ",
         check_sum, "\n")
 }

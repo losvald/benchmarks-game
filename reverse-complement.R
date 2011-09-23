@@ -17,7 +17,7 @@ complement <- function(c) {
     return(comp_map[[c]])
 }
 
-f <- file("/tmp/in", "r")
+f <- file(commandArgs(trailingOnly=TRUE), "r")
 while (length(s <- scan(f, what="", nmax=1, quiet=TRUE))) {
     # cat("Read item: ", s, "\n", sep="")
     codes <- substring(s, seq(1, nchar(s)), seq(1, nchar(s)))

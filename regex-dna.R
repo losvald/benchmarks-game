@@ -36,7 +36,7 @@ match_count <- function(ms) {
     return(ifelse(l > 1, l, ifelse(fst != -1L, fst, 0)))
 }
 
-f <- file("regex-dna.in.50000", "r")
+f <- file(commandArgs(trailingOnly=TRUE), "r")
 str <- paste(c(readLines(f), ""), collapse="\n")
 close(f)
 

@@ -13,9 +13,9 @@ complements <- c(
     "N")
 comp_map <- NULL
 comp_map[codes] <- complements
-complement <- function(c) {
+comp_map[tolower(codes)] <- complements
+complement <- function(c)
     return(comp_map[[c]])
-}
 
 f <- file(commandArgs(trailingOnly=TRUE), "r")
 while (length(s <- readLines(f, n=1, warn=FALSE))) {
@@ -23,7 +23,7 @@ while (length(s <- readLines(f, n=1, warn=FALSE))) {
         cat(s, "\n", sep="")
     else {
         codes <- substring(s, seq(1, nchar(s)), seq(1, nchar(s)))
-    	cat(paste(sapply(toupper(codes), complement), collapse=""), "\n",
+    	cat(paste(sapply(codes, complement), collapse=""), "\n",
             sep="")
     }
 }

@@ -18,10 +18,13 @@ complement <- function(c) {
 }
 
 f <- file(commandArgs(trailingOnly=TRUE), "r")
-while (length(s <- scan(f, what="", nmax=1, quiet=TRUE))) {
-    # cat("Read item: ", s, "\n", sep="")
-    codes <- substring(s, seq(1, nchar(s)), seq(1, nchar(s)))
-    cat(paste(sapply(codes, complement), collapse=""))
+while (length(s <- readLines(f, n=1, warn=FALSE))) {
+    if (substr(s, 1, 1) == '>')
+        cat(s, "\n", sep="")
+    else {
+        codes <- substring(s, seq(1, nchar(s)), seq(1, nchar(s)))
+    	cat(paste(sapply(toupper(codes), complement), collapse=""), "\n",
+            sep="")
+    }
 }
 close(f)
-cat("\n")

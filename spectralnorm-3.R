@@ -5,7 +5,10 @@
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-spectral_norm3 <- function(n) {
+spectral_norm3 <- function(args) {
+    n = ifelse(length(args), as.integer(args[[1]]), 100L)
+    options(digits=10)
+
     eval_A <- function(i, j) eval_A_cache[[i, j]]
     eval_A_times_u <- function(u) {
         #    eval_A_mat <- outer(seq(n), seq(n), FUN=eval_A)
@@ -38,7 +41,4 @@ spectral_norm3 <- function(n) {
     cat(sqrt(sum(u * v) / sum(v * v)), "\n")
 }
 
-options(digits=10)
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args))
-    spectral_norm3(as.integer(args)[[1]])
+spectral_norm3(commandArgs(trailingOnly=TRUE))

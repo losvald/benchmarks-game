@@ -5,26 +5,23 @@
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-spectral_norm5 <- function(n) {
+spectral_norm_naive <- function(args) {
+    n = ifelse(length(args), as.integer(args[[1]]), 100L)
+    options(digits=10)
+
     eval_A <- function(i, j) 1 / ((i + j) * (i + j + 1) / 2 + i + 1)
     eval_A_times_u <- function(u) {
-        ret <- double(n)
-        for (i in 0:n1) {
-            eval_A_col <- double(n)
-            for (j in 0:n1)
-	    eval_A_col[[j + 1]] <- eval_A(i, j)
-            ret[[i + 1]] <- u %*% eval_A_col
-        }
+        ret <- rep(0, n)
+        for (i in 1:n)
+	    for (j in 0:n1)
+                ret[[i]] <- ret[[i]] + u[[j + 1]] * eval_A(i - 1, j)
         return(ret)
     }
     eval_At_times_u <- function(u) {
-        ret <- double(n)
-        for (i in 0:n1) {
-            eval_At_col <- double(n)
-            for (j in 0:n1)
-	    eval_At_col[[j + 1]] <- eval_A(j, i)
-            ret[[i + 1]] <- u %*% eval_At_col
-        }
+        ret <- rep(0, n)
+        for (i in 1:n)
+	    for (j in 0:n1)
+                ret[[i]] <- ret[[i]] + u[[j + 1]] * eval_A(j, i - 1)
         return(ret)
     }
     eval_AtA_times_u <- function(u) eval_At_times_u(eval_A_times_u(u))
@@ -40,7 +37,4 @@ spectral_norm5 <- function(n) {
     cat(sqrt(sum(u * v) / sum(v * v)), "\n")
 }
 
-options(digits=10)
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args))
-    spectral_norm5(as.integer(args)[[1]])
+spectral_norm_naive(commandArgs(trailingOnly=TRUE))

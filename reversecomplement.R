@@ -17,7 +17,8 @@ comp_map[tolower(codes)] <- complements
 complement <- function(c)
     return(comp_map[[c]])
 
-reverse_complement <- function(in_filename) {
+reverse_complement <- function(args) {
+    in_filename = args[[1]]
     f <- file(in_filename, "r")
     while (length(s <- readLines(f, n=1, warn=FALSE))) {
         if (substr(s, 1, 1) == '>')
@@ -31,6 +32,4 @@ reverse_complement <- function(in_filename) {
     close(f)
 }
 
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args))
-    reverse_complement(args[[1]])
+reverse_complement(commandArgs(trailingOnly=TRUE))

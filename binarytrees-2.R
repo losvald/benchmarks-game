@@ -18,7 +18,9 @@ check <- function(tree)
 	tree[[1]],
 	tree[[1]] + check(tree[[2]]) - check(tree[[3]]))
 
-binary_trees_naive <- function(n) {
+binary_trees2 <- function(args) {
+    n = ifelse(length(args), as.integer(args[[1]]), 10L)
+
     min_depth <- 4
     max_depth <- max(min_depth + 2, n)
     stretch_depth <- max_depth + 1
@@ -30,17 +32,15 @@ binary_trees_naive <- function(n) {
 
     for (depth in min_depth:max_depth) {
         iterations <- as.integer(2^(max_depth - depth + min_depth))
-        chk_sum <- 0L
-        for (i in 1:iterations)
-        chk_sum <- chk_sum + check(tree(i, depth)) + check(tree(-i, depth))
+        check_sum <- sum(sapply(
+                1:iterations, 
+                function(i) check(tree(i, depth)) + check(tree(-i, depth))))
         cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check ",
-            chk_sum, "\n")
+            check_sum, "\n")
     }
 
     cat(sep="", "long lived tree of depth ", max_depth, "\t check: ", 
         check(long_lived_tree), "\n")
 }
 
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args))
-    binary_trees_naive(as.integer(args)[[1]])
+binary_trees2(commandArgs(trailingOnly=TRUE))

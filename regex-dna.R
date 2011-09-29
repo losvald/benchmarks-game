@@ -36,18 +36,25 @@ match_count <- function(ms) {
     return(ifelse(l > 1, l, ifelse(fst != -1L, fst, 0)))
 }
 
-f <- file(commandArgs(trailingOnly=TRUE), "r")
-str <- paste(c(readLines(f), ""), collapse="\n")
-close(f)
+regex_dna <- function(in_filename) {
+    f <- file(in_filename, "r")
+    str <- paste(c(readLines(f), ""), collapse="\n")
+    close(f)
 
-len1 <- nchar(str)
-str <- gsub(">.*\n|\n", "", str, perl=TRUE, useBytes=TRUE)
-len2 <- nchar(str)
+    len1 <- nchar(str)
+    str <- gsub(">.*\n|\n", "", str, perl=TRUE, useBytes=TRUE)
+    len2 <- nchar(str)
 
-for (pat in pattern1)
-    cat(pat, match_count(gregexpr(pat, str, useBytes=TRUE)), "\n")
+    for (pat in pattern1)
+        cat(pat, match_count(gregexpr(pat, str, useBytes=TRUE)), "\n")
 
-for (i in 1:nrow(pattern2))
-    str <- gsub(pattern2[[i, 1]], pattern2[[i, 2]], str, perl=TRUE, useBytes=TRUE)
+    for (i in 1:nrow(pattern2))
+        str <- gsub(pattern2[[i, 1]], pattern2[[i, 2]], str, perl=TRUE, 
+                    useBytes=TRUE)
 
-cat("", len1, len2, nchar(str), sep="\n")
+    cat("", len1, len2, nchar(str), sep="\n")
+}
+
+args <- commandArgs(trailingOnly=TRUE)
+if (length(args))
+    regex_dna(args[[1]])

@@ -5,10 +5,14 @@
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-eval_A <- function(i, j) 1 / ((i + j - 2) * (i + j - 1) / 2 + i)
+spectral_norm_math <- function(n) {
+    eval_A <- function(i, j) 1 / ((i + j - 2) * (i + j - 1) / 2 + i)
 
-n <- as.integer(commandArgs(trailingOnly=TRUE))
-m <- outer(seq(n), seq(n), FUN=eval_A)
+    m <- outer(seq(n), seq(n), FUN=eval_A)
+    cat(sqrt(max(eigen(t(m) %*% m)$val)), "\n")
+}
 
 options(digits=10)
-cat(sqrt(max(eigen(t(m) %*% m)$val)), "\n")
+args <- commandArgs(trailingOnly=TRUE)
+if (length(args))
+    spectral_norm_math(as.integer(args)[[1]])

@@ -22,23 +22,29 @@ check <- function(tree)
 	tree[[1]],
 	tree[[1]] + check(tree[[2]]) - check(tree[[3]]))
 
-min_depth <- 4
-n <- as.integer(commandArgs(trailingOnly=TRUE))
-max_depth <- max(min_depth + 2, n)
-stretch_depth <- max_depth + 1
+binary_trees <- function(n) {
+    min_depth <- 4
+    max_depth <- max(min_depth + 2, n)
+    stretch_depth <- max_depth + 1
 
-cat(sep="", "stretch tree of depth ", stretch_depth, "\t check: ",
-    check(tree(0, stretch_depth)), "\n")
+    cat(sep="", "stretch tree of depth ", stretch_depth, "\t check: ",
+        check(tree(0, stretch_depth)), "\n")
 
-long_lived_tree <- tree(0, max_depth)
+    long_lived_tree <- tree(0, max_depth)
 
-for (depth in min_depth:max_depth) {
-    iterations <- as.integer(2^(max_depth - depth + min_depth))
-     check_sum <- sum(sapply(1:iterations, function(i)
-                            check(tree(i, depth)) + check(tree(-i, depth))))
-    cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check ",
-        check_sum, "\n")
+    for (depth in min_depth:max_depth) {
+        iterations <- as.integer(2^(max_depth - depth + min_depth))
+        check_sum <- sum(sapply(
+                1:iterations,
+		function(i) check(tree(i, depth)) + check(tree(-i, depth))))
+        cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check ",
+            check_sum, "\n")
+    }
+
+    cat(sep="", "long lived tree of depth ", max_depth, "\t check: ", 
+        check(long_lived_tree), "\n")
 }
 
-cat(sep="", "long lived tree of depth ", max_depth, "\t check: ", 
-    check(long_lived_tree))
+args <- commandArgs(trailingOnly=TRUE)
+if (length(args))
+    binary_trees(as.integer(args)[[1]])

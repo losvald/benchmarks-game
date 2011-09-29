@@ -17,14 +17,20 @@ comp_map[tolower(codes)] <- complements
 complement <- function(c)
     return(comp_map[[c]])
 
-f <- file(commandArgs(trailingOnly=TRUE), "r")
-while (length(s <- readLines(f, n=1, warn=FALSE))) {
-    if (substr(s, 1, 1) == '>')
-        cat(s, "\n", sep="")
-    else {
-        codes <- substring(s, seq(1, nchar(s)), seq(1, nchar(s)))
-    	cat(paste(sapply(codes, complement), collapse=""), "\n",
-            sep="")
+reverse_complement <- function(in_filename) {
+    f <- file(in_filename, "r")
+    while (length(s <- readLines(f, n=1, warn=FALSE))) {
+        if (substr(s, 1, 1) == '>')
+            cat(s, "\n", sep="")
+        else {
+            codes <- substring(s, seq(1, nchar(s)), seq(1, nchar(s)))
+            cat(paste(sapply(codes, complement), collapse=""), "\n",
+                sep="")
+        }
     }
+    close(f)
 }
-close(f)
+
+args <- commandArgs(trailingOnly=TRUE)
+if (length(args))
+    reverse_complement(args[[1]])

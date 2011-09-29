@@ -75,10 +75,15 @@ random_fasta <- function(genelist, count) {
     }
 }
 
-n <- as.integer(commandArgs(trailingOnly=TRUE))
-cat(">ONE Homo sapiens alu\n")
-repeat_fasta(alu, 2 * n)
-cat(">TWO IUB ambiguity codes\n")
-random_fasta(iub, 3L * n)
-cat(">THREE Homo sapiens frequency\n")
-random_fasta(homosapiens, 5L * n)
+fasta <- function(n) {
+    cat(">ONE Homo sapiens alu\n")
+    repeat_fasta(alu, 2 * n)
+    cat(">TWO IUB ambiguity codes\n")
+    random_fasta(iub, 3L * n)
+    cat(">THREE Homo sapiens frequency\n")
+    random_fasta(homosapiens, 5L * n)
+}
+
+args <- commandArgs(trailingOnly=TRUE)
+if (length(args))
+    fasta(as.integer(args)[[1]])

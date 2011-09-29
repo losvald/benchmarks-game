@@ -97,11 +97,15 @@ energy <- function() {
            sum(q[upper.tri(q)]))
 }
 
-options(digits=9)
-n <- as.integer(commandArgs(trailingOnly=TRUE))
+n_body2 <- function(n) {
+    offset_momentum()
+    cat(energy(), "\n")
+    for (i in 1:n)
+        advance(0.01)
+    cat(energy(), "\n")
+}
 
-offset_momentum()
-cat(energy(), "\n")
-for (i in 1:n)
-  advance(0.01)
-cat(energy(), "\n")
+options(digits=9)
+args <- commandArgs(trailingOnly=TRUE)
+if (length(args))
+    n_body2(as.integer(args)[[1]])

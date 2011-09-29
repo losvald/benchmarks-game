@@ -5,7 +5,10 @@
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-spectral_norm4 <- function(n) {
+spectral_norm4 <- function(args) {
+    n = ifelse(length(args), as.integer(args[[1]]), 100L)
+    options(digits=10)
+
     eval_A <- function(i, j)
         return(ifelse(
             eval_A_cache[[i, j]] != 0, eval_A_cache[[i, j]],
@@ -40,7 +43,4 @@ spectral_norm4 <- function(n) {
     cat(sqrt(sum(u * v) / sum(v * v)), "\n")
 }
 
-options(digits=10)
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args))
-    spectral_norm4(as.integer(args)[[1]])
+spectral_norm4(commandArgs(trailingOnly=TRUE))

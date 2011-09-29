@@ -75,7 +75,8 @@ random_fasta <- function(genelist, count) {
     }
 }
 
-fasta <- function(n) {
+fasta <- function(args) {
+    n = ifelse(length(args), as.integer(args[[1]]), 1000)
     cat(">ONE Homo sapiens alu\n")
     repeat_fasta(alu, 2 * n)
     cat(">TWO IUB ambiguity codes\n")
@@ -84,6 +85,4 @@ fasta <- function(n) {
     random_fasta(homosapiens, 5L * n)
 }
 
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args))
-    fasta(as.integer(args)[[1]])
+fasta(commandArgs(trailingOnly=TRUE))

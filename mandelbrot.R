@@ -8,7 +8,8 @@
 lim <- 2
 iter <- 50
 
-mandelbrot <- function(n) {
+mandelbrot <- function(args) {
+    n = ifelse(length(args), as.integer(args[[1]]), 200L)
     cat("P4\n")
     cat(n, n, "\n")
     bin_con <- pipe("cat", "wb")
@@ -31,6 +32,4 @@ mandelbrot <- function(n) {
     }
 }
 
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args))
-    mandelbrot(as.integer(args)[[1]])
+mandelbrot(commandArgs(trailingOnly=TRUE))

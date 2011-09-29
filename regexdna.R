@@ -36,7 +36,8 @@ match_count <- function(ms) {
     return(ifelse(l > 1, l, ifelse(fst != -1L, fst, 0)))
 }
 
-regex_dna <- function(in_filename) {
+regex_dna <- function(args) {
+    in_filename = args[[1]]
     f <- file(in_filename, "r")
     str <- paste(c(readLines(f), ""), collapse="\n")
     close(f)
@@ -55,6 +56,4 @@ regex_dna <- function(in_filename) {
     cat("", len1, len2, nchar(str), sep="\n")
 }
 
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args))
-    regex_dna(args[[1]])
+regex_dna(commandArgs(trailingOnly=TRUE))

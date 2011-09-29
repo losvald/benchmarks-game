@@ -69,47 +69,24 @@ offset_momentum <- function() {
 }
 
 advance <- function(dt) {
-    dxx <- matrix(0, n_bodies, n_bodies)
-    dyy <- matrix(0, n_bodies, n_bodies)
-    dzz <- matrix(0, n_bodies, n_bodies)
-    for (i in 1:n_bodies) {
-        for (j in 1:n_bodies) {
-            dxx[[i, j]] <- body_x[[i]] - body_x[[j]]
-            dyy[[i, j]] <- body_y[[i]] - body_y[[j]]
-            dzz[[i, j]] <- body_z[[i]] - body_z[[j]]
-        }
-    }
-
-    for (i in 1:(n_bodies - 1)) {
-        j_from <- min(i + 1, n_bodies)
-        for (j in j_from:n_bodies) {
-            dx <- body_x[[i]] - body_x[[j]]
-            dy <- body_y[[i]] - body_y[[j]]
-            dz <- body_z[[i]] - body_z[[j]]
-            distance <- sqrt(dx * dx + dy * dy + dz * dz)
-            mag <- dt / (distance * distance * distance)
-            body_vx[[i]] <<- body_vx[[i]] - dx * body_mass[[j]] * mag
-            body_vy[[i]] <<- body_vy[[i]] - dy * body_mass[[j]] * mag
-            body_vz[[i]] <<- body_vz[[i]] - dz * body_mass[[j]] * mag
-            body_vx[[j]] <<- body_vx[[j]] + dx * body_mass[[i]] * mag
-            body_vy[[j]] <<- body_vy[[j]] + dy * body_mass[[i]] * mag
-            body_vz[[j]] <<- body_vz[[j]] + dz * body_mass[[i]] * mag
-        }
-    }
-
-    for (i in 1:n_bodies) {
-        body_x[[i]] <<- body_x[[i]] + dt * body_vx[[i]]
-        body_y[[i]] <<- body_y[[i]] + dt * body_vy[[i]]
-        body_z[[i]] <<- body_z[[i]] + dt * body_vz[[i]]
-    }
+    dxx <- outer(body_x, body_x, "-")  # ~2x faster then nested for loops
+    dyy <- outer(body_y, body_y, "-")
+    dzz <- outer(body_z, body_z, "-")
+    distance <- sqrt(dxx * dxx + dyy * dyy + dzz * dzz)
+    mag <- dt / (distance * distance * distance)  # ~fast as distance^3
+    diag(mag) <- 0
+    body_vx <<- body_vx - as.vector((dxx * mag) %*% body_mass)
+    body_vy <<- body_vy - as.vector((dyy * mag) %*% body_mass)
+    body_vz <<- body_vz - as.vector((dzz * mag) %*% body_mass)
+    body_x <<- body_x + dt * body_vx
+    body_y <<- body_y + dt * body_vy
+    body_z <<- body_z + dt * body_vz
 }
 
 energy <- function() {
-    # this is only called twice, so the way of implementing it is not important
     dxx <- outer(body_x, body_x, "-")
     dyy <- outer(body_y, body_y, "-")
     dzz <- outer(body_z, body_z, "-")
-
     distance <- sqrt(dxx * dxx + dyy * dyy + dzz * dzz)
     q <- (body_mass %o% body_mass) / distance
     return(sum(0.5 * body_mass *
@@ -117,7 +94,9 @@ energy <- function() {
            sum(q[upper.tri(q)]))
 }
 
-n_body_naive <- function(n) {
+n_body <- function(args) {
+    n = ifelse(length(args), as.integer(args[[1]]), 1000L)
+    options(digits=9)
     offset_momentum()
     cat(energy(), "\n")
     for (i in 1:n)
@@ -125,7 +104,4 @@ n_body_naive <- function(n) {
     cat(energy(), "\n")
 }
 
-options(digits=9)
-args <- commandArgs(trailingOnly=TRUE)
-if (length(args))
-    n_body_naive(as.integer(args)[[1]])
+n_body(commandArgs(trailingOnly=TRUE))

@@ -18,7 +18,7 @@ check <- function(tree)
 	tree[[1]],
 	tree[[1]] + check(tree[[2]]) - check(tree[[3]]))
 
-binary_trees2 <- function(args) {
+binarytrees_2 <- function(args) {
     n = ifelse(length(args), as.integer(args[[1]]), 10L)
 
     min_depth <- 4
@@ -43,4 +43,5 @@ binary_trees2 <- function(args) {
         check(long_lived_tree), "\n")
 }
 
-binary_trees2(commandArgs(trailingOnly=TRUE))
+if (!exists("i_am_wrapper"))
+    binarytrees_2(commandArgs(trailingOnly=TRUE))

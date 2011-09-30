@@ -5,7 +5,7 @@
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-spectral_norm_math <- function(args) {
+spectralnorm_math <- function(args) {
     n = ifelse(length(args), as.integer(args[[1]]), 100L)
     options(digits=10)
 
@@ -15,4 +15,5 @@ spectral_norm_math <- function(args) {
     cat(sqrt(max(eigen(t(m) %*% m)$val)), "\n")
 }
 
-spectral_norm_math(commandArgs(trailingOnly=TRUE))
+if (!exists("i_am_wrapper"))
+    spectralnorm_math(commandArgs(trailingOnly=TRUE))

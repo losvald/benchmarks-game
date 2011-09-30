@@ -6,13 +6,10 @@ fi
 
 for f in $@; do
     echo \
-'#!/bin/bash
-tail +3 "$0" | R --slave --args $@; exit $?
-# ------------------------------------------------------------------
-# The Computer Language Shootout
-# http://shootout.alioth.debian.org/
-#
-# Contributed by Leo Osvald
-# ------------------------------------------------------------------' > "$f"
-chmod +x "$f"
+"$f <- function(args) {
+    # TODO main
+}
+
+if (!exists(\"i_am_wrapper\"))
+    $f""(commandArgs(trailingOnly=TRUE))" > "$f.R"
 done

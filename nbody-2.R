@@ -97,7 +97,7 @@ energy <- function() {
            sum(q[upper.tri(q)]))
 }
 
-n_body2 <- function(args) {
+nbody_2 <- function(args) {
     n = ifelse(length(args), as.integer(args[[1]]), 1000L)
     options(digits=9)
     offset_momentum()
@@ -107,4 +107,5 @@ n_body2 <- function(args) {
     cat(energy(), "\n")
 }
 
-n_body2(commandArgs(trailingOnly=TRUE))
+if (!exists("i_am_wrapper"))
+    nbody_2(commandArgs(trailingOnly=TRUE))

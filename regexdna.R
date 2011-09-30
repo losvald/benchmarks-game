@@ -36,7 +36,7 @@ match_count <- function(ms) {
     return(ifelse(l > 1, l, ifelse(fst != -1L, fst, 0)))
 }
 
-regex_dna <- function(args) {
+regexdna <- function(args) {
     in_filename = args[[1]]
     f <- file(in_filename, "r")
     str <- paste(c(readLines(f), ""), collapse="\n")
@@ -56,4 +56,5 @@ regex_dna <- function(args) {
     cat("", len1, len2, nchar(str), sep="\n")
 }
 
-regex_dna(commandArgs(trailingOnly=TRUE))
+if (!exists("i_am_wrapper"))
+    regexdna(commandArgs(trailingOnly=TRUE))

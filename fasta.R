@@ -85,4 +85,5 @@ fasta <- function(args) {
     random_fasta(homosapiens, 5L * n)
 }
 
-fasta(commandArgs(trailingOnly=TRUE))
+if (!exists("i_am_wrapper"))
+    fasta(commandArgs(trailingOnly=TRUE))

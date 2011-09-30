@@ -5,7 +5,7 @@
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-spectral_norm2 <- function(args) {
+spectralnorm_2 <- function(args) {
     n = ifelse(length(args), as.integer(args[[1]]), 100L)
     options(digits=10)
 
@@ -28,4 +28,5 @@ spectral_norm2 <- function(args) {
     cat(sqrt(sum(u * v) / sum(v * v)), "\n")
 }
 
-spectral_norm2(commandArgs(trailingOnly=TRUE))
+if (!exists("i_am_wrapper"))
+    spectralnorm_2(commandArgs(trailingOnly=TRUE))

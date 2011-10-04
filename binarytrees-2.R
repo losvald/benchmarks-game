@@ -30,12 +30,12 @@ binarytrees_2 <- function(args) {
 
     long_lived_tree <- tree(0, max_depth)
 
-    for (depth in min_depth:max_depth) {
+    for (depth in seq(min_depth, max_depth, 2)) {
         iterations <- as.integer(2^(max_depth - depth + min_depth))
         check_sum <- sum(sapply(
                 1:iterations, 
                 function(i) check(tree(i, depth)) + check(tree(-i, depth))))
-        cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check ",
+        cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check: ",
             check_sum, "\n")
     }
 

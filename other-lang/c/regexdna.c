@@ -3,6 +3,7 @@
 ** http://shootout.alioth.debian.org/
 ** regex-dna C GNU gcc #2
 ** contributed by Mike Pall
+** slightly modified by Leo Osvald
 **
 ** regex-dna benchmark using PCRE
 **
@@ -115,7 +116,7 @@ int main(int argc, char **argv)
   int flip;
   fb_init(&seq[0]);
   fb_init(&seq[1]);
-  ilen = fb_readall(&seq[0], stdin);
+  ilen = fb_readall(&seq[0], fopen(argv[1], "r"));
   clen = fb_subst(&seq[1], &seq[0], ">.*|\n", "");
   for (pp = variants; *pp; pp++)
     printf("%s %d\n", *pp, fb_countmatches(&seq[1], *pp));

@@ -10,6 +10,8 @@
 
  * contributed by Bob W 
 
+ * slightly modified by Leo Osvald
+
  */
 
 #include <stdio.h>
@@ -34,7 +36,7 @@ int errex(char *s, int n) {      // error message+value, return 1
   return 1;
 }
 
-int main () {                    // ***** main *****
+int main(int argc, char **argv) {// ***** main *****
 
   char *pj, *pq, *pr;            // buffer pointers: inp,out,/out
 
@@ -46,10 +48,11 @@ int main () {                    // ***** main *****
 
   char xtab[256] = VALL;         // char conversion table
 
+  FILE *fin = fopen(argv[1], "r");
 
   if (!jjj || !qqq)
     return errex("Buffer allocation", !jjj + !qqq);
-  pj = fgets(jjj,JBFSIZE,stdin);         // fetch 1st line
+  pj = fgets(jjj,JBFSIZE,fin);         // fetch 1st line
 
   if (!pj)
     return errex("No input data",0);
@@ -63,7 +66,7 @@ int main () {                    // ***** main *****
 
     for (pq=qqq+1, pr=pqstop; ; pq++) {  // LOOP: fill output buffer
 
-      pj = fgets(jjj, JBFSIZE, stdin);   // get line from stdin
+      pj = fgets(jjj, JBFSIZE, fin);   // get line from file
 
       if (!pj || (*jjj=='>'))  break;    // EOF or new ID line
 

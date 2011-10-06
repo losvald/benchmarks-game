@@ -5,9 +5,9 @@
 # contributed by Antoine Pitrou
 # modified by Dominique Wahli and Daniel Nanz 
 # modified by Liam Byrne
+# slightly modified by Leo Osvald
 
 import sys
-import multiprocessing as mp
 
 
 def make_tree(i, d):
@@ -50,23 +50,18 @@ def main(n, min_depth=4):
 
     max_depth = max(min_depth + 2, n)
     stretch_depth = max_depth + 1
-    if mp.cpu_count() > 1:
-        pool = mp.Pool()
-        chunkmap = pool.map
-    else:
-        chunkmap = map
 
-    print('stretch tree of depth {}\t check: {}'.format(
+    print('stretch tree of depth {0}\t check: {1}'.format(
           stretch_depth, make_check((0, stretch_depth))))
 
     mmd = max_depth + min_depth
     for d in range(min_depth, stretch_depth, 2):
         i = 2 ** (mmd - d)
-        cs = sum((sum(chunkmap(make_check, argchunk))
+        cs = sum((sum(map(make_check, argchunk))
                   for argchunk in get_argchunks(i, d)))
-        print('{}\t trees of depth {}\t check: {}'.format(i * 2, d, cs))
+        print('{0}\t trees of depth {1}\t check: {2}'.format(i * 2, d, cs))
 
-    print('long lived tree of depth {}\t check: {}'.format(
+    print('long lived tree of depth {0}\t check: {1}'.format(
           max_depth, make_check((0, max_depth))))
 
 

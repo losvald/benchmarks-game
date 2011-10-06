@@ -6,13 +6,14 @@
    contributed by Stefan Krause
 
    slightly modified by Chad Whipkey
+   slightly modified by Leo Osvald
 
 */
 
 import java.io.IOException;
 import java.io.PrintStream;
 
-class mandelbrot {
+public class mandelbrot {
 
    public static void main(String[] args) throws Exception {
        new Mandelbrot(Integer.parseInt(args[0])).compute();

@@ -2,6 +2,7 @@
  * 
  * The Great Computer Language Shootout
  * http://shootout.alioth.debian.org/
+ * spectral-norm C GNU gcc
  *
  * Contributed by Sebastien Loisel
  */

@@ -8,13 +8,14 @@
 # contributed by Jacob Lee, Steven Bethard, et al
 # 2to3, fixed by Daniele Varrazzo
 # modified by Daniel Nanz
+# slightly modified by Leo Osvald
 
+import string
 import sys
 
-
-def show(seq, table=bytes.maketrans(b'ACBDGHKMNSRUTWVYacbdghkmnsrutwvy',
-                                    b'TGVHCDMKNSYAAWBRTGVHCDMKNSYAAWBR'),
-         write=sys.stdout.buffer.write, nl=b'\n'):
+def show(seq, table=string.maketrans(b'ACBDGHKMNSRUTWVYacbdghkmnsrutwvy',
+                                     b'TGVHCDMKNSYAAWBRTGVHCDMKNSYAAWBR'),
+         write=sys.stdout.write, nl=b'\n'):
     
     [header, s] = seq.split(nl, 1)
     s = s.translate(table, nl)[: : -1]
@@ -26,9 +27,9 @@ def show(seq, table=bytes.maketrans(b'ACBDGHKMNSRUTWVYacbdghkmnsrutwvy',
 
 
 def main():
-    
-    sys.stdin = sys.stdin.detach()
-    seqs = b''.join([line for line in sys.stdin]).split(b'>')[1 : ]
+    f = open(sys.argv[1], 'r')
+    #sys.stdin = sys.stdin.detach()
+    seqs = b''.join([line for line in f]).split(b'>')[1 : ]
     
     for seq in seqs:
         show(seq)        

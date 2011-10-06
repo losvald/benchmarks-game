@@ -3,7 +3,8 @@
 # regex-dna Ruby 1.9
 #
 # contributed by jose fco. gonzalez
-seq = STDIN.readlines.join
+# slightly modified by Leo Osvald
+seq = File.open(ARGV[0]).readlines.join
 ilen = seq.size
 
 seq.gsub!(/>.*\n|\n/,"")

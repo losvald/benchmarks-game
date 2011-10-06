@@ -3,6 +3,7 @@
    regex-dna Java 7 -server #7
 
    contributed by Jason Nordwick
+   slightly modified by Leo Osvald
 */
 
 import java.io.FileDescriptor;
@@ -153,7 +154,7 @@ public final class regexdna {
 
    public static void main( String[] args ) throws Exception {
 
-      FileInputStream fis = new FileInputStream( FileDescriptor.in );
+      FileInputStream fis = new FileInputStream( args[0] );
       FileChannel cin = fis.getChannel();
       ByteBuffer bb = ByteBuffer.allocate( (int) cin.size() );
       cin.read( bb );

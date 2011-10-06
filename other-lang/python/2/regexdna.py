@@ -4,13 +4,14 @@
 # contributed by Dominique Wahli
 # 2to3
 # modified by Justin Peel
+# slightly modified by Leo Osvald
 
-from sys import stdin,stdout
+from sys import stdin,stdout,argv
 from re import sub, findall
 
 def main():
-    seq = stdin.buffer.read()
-    write = stdout.buffer.write
+    seq = open(argv[1]).read()
+    write = stdout.write
     ilen = len(seq)
 
     seq = sub(b'>.*\n|\n', b'', seq)
@@ -27,7 +28,7 @@ def main():
           b'agggta[cgt]a|t[acg]taccct',
           b'agggtaa[cgt]|[acg]ttaccct')
     for f in variants:
-        write(f + b' ' +bytes(str(len(findall(f, seq))),encoding='latin1') + b'\n')
+        write(f + b' ' +bytes(str(len(findall(f, seq)))) + b'\n')
 
     subst = {
           b'B' : b'(c|g|t)', b'D' : b'(a|g|t)',   b'H' : b'(a|c|t)', b'K' : b'(g|t)',
@@ -36,8 +37,8 @@ def main():
     for f, r in subst.items():
         seq = sub(f, r, seq)
     write(b'\n')
-    write(bytes(str(ilen),encoding='latin1') + b'\n')
-    write(bytes(str(clen),encoding='latin1') + b'\n')
-    write(bytes(str(len(seq)),encoding='latin1') + b'\n')
+    write(bytes(str(ilen)) + b'\n')
+    write(bytes(str(clen)) + b'\n')
+    write(bytes(str(len(seq))) + b'\n')
 
 main()

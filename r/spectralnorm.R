@@ -5,17 +5,28 @@
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-spectralnorm <- function(args) {
+spectralnorm_naive <- function(args) {
     n = ifelse(length(args), as.integer(args[[1]]), 100L)
     options(digits=10)
 
-    eval_A <- function(i, j) 1 / ((i + j - 2) * (i + j - 1) / 2 + i)
-    eval_A_times_u <- function(u) u %*% g_eval_A_mat
-    eval_At_times_u <- function(u) u %*% g_eval_At_mat
+    eval_A <- function(i, j) 1 / ((i + j) * (i + j + 1) / 2 + i + 1)
+    eval_A_times_u <- function(u) {
+        ret <- rep(0, n)
+        for (i in 1:n)
+	    for (j in 0:n1)
+                ret[[i]] <- ret[[i]] + u[[j + 1]] * eval_A(i - 1, j)
+        return(ret)
+    }
+    eval_At_times_u <- function(u) {
+        ret <- rep(0, n)
+        for (i in 1:n)
+	    for (j in 0:n1)
+                ret[[i]] <- ret[[i]] + u[[j + 1]] * eval_A(j, i - 1)
+        return(ret)
+    }
     eval_AtA_times_u <- function(u) eval_At_times_u(eval_A_times_u(u))
 
-    g_eval_A_mat <- outer(seq(n), seq(n), FUN=eval_A)
-    g_eval_At_mat <- t(g_eval_A_mat)
+    n1 <- n - 1
     u <- rep(1, n)
     v <- rep(0, n)
     for (itr in seq(10)) {
@@ -27,4 +38,4 @@ spectralnorm <- function(args) {
 }
 
 if (!exists("i_am_wrapper"))
-    spectralnorm(commandArgs(trailingOnly=TRUE))
+    spectralnorm_naive(commandArgs(trailingOnly=TRUE))

@@ -5,6 +5,7 @@
 # modified by Ian Osgood
 # modified again by Heinrich Acker
 # 2to3
+# slightly modified by Leo Osvald
 
 import sys, bisect
 
@@ -59,7 +60,7 @@ def repeatFasta(src, n):
 def randomFasta(table, n):
     width = 60
     r = range(width)
-    gR = Random.__next__
+    gR = Random.next
     bb = bisect.bisect
     jn = ''.join
     probs, chars = makeCumulative(table)

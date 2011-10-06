@@ -3,16 +3,19 @@
  * The Computer Language Benchmarks Game
 
  * http://shootout.alioth.debian.org/
+
  * reverse-complement Java 7 -server #4
 
  * contributed by Anthony Donnefort
 
  * slightly modified to read 82 bytes at a time by Razii
 
+ * slightly modified by Leo Osvald
+
  */
 
 import java.io.*;
-public class revcomp {
+public class reversecomplement {
    static final byte[] cmp = new byte[128];
    static {
       for (int i = 0; i < cmp.length; i++) cmp[i] = (byte) i;
@@ -51,10 +54,11 @@ public class revcomp {
    }
 
    public static void main(String[] args) throws Exception {
+      BufferedInputStream input = new BufferedInputStream(new FileInputStream(args[0]));
       byte[] line = new byte[82];
       int read;
       ReversibleByteArray buf = new ReversibleByteArray();
-      while ((read = System.in.read(line)) != -1) {
+      while ((read = input.read(line)) != -1) {
          int i = 0, last = 0;
          while (i < read) {
             if (line[i] == '>') {

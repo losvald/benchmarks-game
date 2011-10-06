@@ -5,6 +5,7 @@
  *
  * Contributed by Sebastien Loisel
  * Modified by Alex Belits
+ * Slightly modified by Leo Osvald
  */
 
 #include <stdio.h>

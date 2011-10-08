@@ -1,5 +1,5 @@
-all: binarytrees fasta fasta mandelbrot nbody regexdna reversecomplement spectralnorm
-clean: clean-binarytrees clean-fasta clean-mandelbrot clean-nbody clean-regexdna clean-reversecomplement clean-spectralnorm
+all: binarytrees fannkuchredux fasta fasta mandelbrot nbody regexdna reversecomplement spectralnorm
+clean: clean-binarytrees clean-fannkuchredux clean-fasta clean-mandelbrot clean-nbody clean-regexdna clean-reversecomplement clean-spectralnorm
 
 BINARYTREES=binarytrees
 BINARYTREES_SRC=$(BINARYTREES).c
@@ -8,6 +8,14 @@ binarytrees: $(BINARYTREES_SRC)
 	gcc -o $(BINARYTREES)-tweaked -pipe -Wall -O3 -fomit-frame-pointer -march=native -fopenmp -D_FILE_OFFSET_BITS=64 -I/usr/include/apr-1 -lapr-1 $(BINARYTREES_SRC)
 clean-binarytrees:
 	rm -f $(BINARYTREES){,-tweaked}
+
+FANNKUCHREDUX=fannkuchredux
+FANNKUCHREDUX_SRC=$(FANNKUCHREDUX).c
+fannkuchredux: $(FANNKUCHREDUX_SRC)
+	gcc -o $(FANNKUCHREDUX) -O2 $(FANNKUCHREDUX_SRC)
+	gcc -o $(FANNKUCHREDUX)-tweaked -pipe -Wall -O3 -fomit-frame-pointer -march=native $(FANNKUCHREDUX_SRC)
+clean-fannkuchredux:
+	rm -f $(FANNKUCHREDUX){,-tweaked}
 
 FASTA=fasta
 FASTA_SRC=$(FASTA).c

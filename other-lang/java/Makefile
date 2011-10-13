@@ -1,5 +1,5 @@
-all: binarytrees fannkuchredux fasta mandelbrot nbody reversecomplement spectralnorm
-clean: clean-binarytrees clean-fannkuchredux clean-fasta clean-mandelbrot clean-nbody clean-regexdna clean-reversecomplement clean-spectralnorm
+all: binarytrees fannkuchredux fasta fastaredux mandelbrot nbody reversecomplement spectralnorm
+clean: clean-binarytrees clean-fannkuchredux clean-fasta clean-fastaredux clean-mandelbrot clean-nbody clean-regexdna clean-reversecomplement clean-spectralnorm
 
 binarytrees:
 	javac binarytrees.java
@@ -15,6 +15,11 @@ fasta:
 	javac fasta.java
 clean-fasta:
 	rm -f fasta*.class
+
+fastaredux:
+	javac fastaredux.java
+clean-fastaredux:
+	rm -f fastaredux*.class
 
 mandelbrot:
 	javac mandelbrot.java

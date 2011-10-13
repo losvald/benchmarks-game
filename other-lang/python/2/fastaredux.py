@@ -72,8 +72,10 @@ def random_fasta(genelist, n):
         while True:
             r = gr()
             ind = lookup[int(r)]
-            while cprob_lookup[ind] < r:
+            if cprob_lookup[ind] < r:
                 ind += 1
+                while cprob_lookup[ind] < r:
+                    ind += 1
             yield chars[ind]
 
     r = range(width)

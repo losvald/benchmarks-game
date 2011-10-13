@@ -1,5 +1,5 @@
-all: binarytrees fannkuchredux fasta fasta mandelbrot nbody regexdna reversecomplement spectralnorm
-clean: clean-binarytrees clean-fannkuchredux clean-fasta clean-mandelbrot clean-nbody clean-regexdna clean-reversecomplement clean-spectralnorm
+all: binarytrees fannkuchredux fasta fastaredux mandelbrot nbody regexdna reversecomplement spectralnorm
+clean: clean-binarytrees clean-fannkuchredux clean-fasta clean-fastaredux clean-mandelbrot clean-nbody clean-regexdna clean-reversecomplement clean-spectralnorm
 
 BINARYTREES=binarytrees
 BINARYTREES_SRC=$(BINARYTREES).c
@@ -24,6 +24,14 @@ fasta: $(FASTA_SRC)
 	gcc -o $(FASTA)-tweaked -pipe -Wall -O3 -fomit-frame-pointer -march=native -std=c99 -mfpmath=sse -msse3 $(FASTA_SRC)
 clean-fasta:
 	rm -f $(FASTA){,-tweaked}
+
+FASTAREDUX=fastaredux
+FASTAREDUX_SRC=$(FASTAREDUX).c
+fastaredux: $(FASTAREDUX_SRC)
+	gcc -o $(FASTAREDUX) -std=c99 -O2 $(FASTAREDUX_SRC)
+	gcc -o $(FASTAREDUX)-tweaked -pipe -Wall -O3 -fomit-frame-pointer -march=native -std=c99 -mfpmath=sse -msse3 $(FASTAREDUX_SRC)
+clean-fastaredux:
+	rm -f $(FASTAREDUX){,-tweaked}
 
 MANDELBROT=mandelbrot
 MANDELBROT_SRC=$(MANDELBROT).c

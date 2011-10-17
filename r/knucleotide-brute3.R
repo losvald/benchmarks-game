@@ -13,14 +13,17 @@ gen_freq <- function(seq, frame) {
     freqs <- integer(cap)
     for (i in 1:ns) {
         subseq = substr(seq, i, i + frame)
-        cnt <- attr(freqs, subseq)
-        if (is.null(cnt)) {
+ 	 #if (subseq %in% names(freqs))
+ 	 #    cnt <- freqs[[subseq]]
+	 cnt <- freqs[subseq]
+	 if (is.na(cnt)) {
+         #else {
             cnt <- 0L
             # ensure O(N) resizing (instead of O(N^2))
             n <- n + 1L
             freqs[[cap <- ifelse(cap < n, 2L * cap, cap)]] <- 0L
         }
-        attr(freqs, subseq) <- cnt + 1L
+        freqs[[subseq]] <- cnt + 1L
     }
     return(freqs)
 }
@@ -42,7 +45,7 @@ sort_seq <- function(seq, len) {
     cnt_map <- gen_freq(seq, len)
     #print(cnt_map)
     attrs <- attributes(cnt_map)
-    fs <- as.integer(paste(attrs))
+    fs <- unlist(attrs, use.names=FALSE)
     seqs <- toupper(paste(names(attrs)))
     inds <- order(-fs, seqs)
     #cat(paste(seqs[inds], fs[inds], collapse="\n"), "\n")
@@ -57,7 +60,7 @@ find_seq <- function(seq, s) {
     return(0L)
 }
 
-knucleotide <- function(args) {
+knucleotide_brute3 <- function(args) {
     in_filename = args[[1]]
     f <- file(in_filename, "r")
     while (length(line <- readLines(f, n=1, warn=FALSE))) {
@@ -104,4 +107,4 @@ paste. <- function (..., digits=16, sep=" ", collapse=NULL) {
 }
 
 if (!exists("i_am_wrapper"))
-    knucleotide(commandArgs(trailingOnly=TRUE))
+    knucleotide_brute3(commandArgs(trailingOnly=TRUE))

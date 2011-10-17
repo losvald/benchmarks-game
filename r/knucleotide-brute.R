@@ -8,34 +8,49 @@
 gen_freq <- function(seq, frame) {
     frame <- frame - 1L
     ns <- nchar(seq) - frame
-    h <- new.env(emptyenv(), hash=TRUE)
+    freqs <- integer(0)
     for (i in 1:ns) {
         subseq = substr(seq, i, i + frame)
-	if (exists(subseq, h, inherits=FALSE))
-	    cnt <- get(subseq, h, inherits=FALSE)
-	else
-	    cnt <- 0L
-	assign(subseq, cnt + 1L, h)
+        cnt <- attr(freqs, subseq)
+        if (is.null(cnt)) cnt <- 0L
+        attr(freqs, subseq) <- cnt + 1L
     }
-    return(sapply(ls(h), function(k) get(k, h, inherits=FALSE)))
+    return(freqs)
+}
+
+gen_freq <- function(seq, frame) {
+    frame <- frame - 1L
+    ns <- nchar(seq) - frame
+    freqs <- integer(0)
+    for (i in 1:ns) {
+        subseq = substr(seq, i, i + frame)
+        cnt <- attr(freqs, subseq)
+        if (is.null(cnt)) cnt <- 0L
+        attr(freqs, subseq) <- cnt + 1L
+    }
+    return(freqs)
 }
 
 sort_seq <- function(seq, len) {
-    fs <- gen_freq(seq, len)
-    seqs <- names(fs)
+    cnt_map <- gen_freq(seq, len)
+    #print(cnt_map)
+    attrs <- attributes(cnt_map)
+    fs <- unlist(attrs, use.names=FALSE)
+    seqs <- toupper(paste(names(attrs)))
     inds <- order(-fs, seqs)
+    #cat(paste(seqs[inds], fs[inds], collapse="\n"), "\n")
     cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
         "\n")
 }
 
 find_seq <- function(seq, s) {
-    freqs <- gen_freq(seq, nchar(s))
-    if (s %in% names(freqs))
-        return(freqs[[s]])
+    cnt_map <- gen_freq(seq, nchar(s))
+    if (!is.null(cnt <- attr(cnt_map, s)))
+        return(cnt)
     return(0L)
 }
 
-knucleotide <- function(args) {
+knucleotide_brute <- function(args) {
     in_filename = args[[1]]
     f <- file(in_filename, "r")
     while (length(line <- readLines(f, n=1, warn=FALSE))) {
@@ -53,13 +68,14 @@ knucleotide <- function(args) {
         if (first_char == '>' || first_char == ';')
             break
         n <- n + 1L
-        # ensure O(N) resizing (instead of O(N^2))
+	# ensure O(N) resizing (instead of O(N^2))
         str_buf[[cap <- ifelse(cap < n, 2L * cap, cap)]] <- ""
         str_buf[[n]] <- line
     }
     length(str_buf) <- n
     close(f)
     seq <- paste(str_buf, collapse="")
+
 
     sort_seq(seq, 2)
     for (s in c("GGT", "GGTA", "GGTATT", "GGTATTTTAATT", "GGTATTTTAATTTATAGT"))
@@ -81,4 +97,4 @@ paste. <- function (..., digits=16, sep=" ", collapse=NULL) {
 }
 
 if (!exists("i_am_wrapper"))
-    knucleotide(commandArgs(trailingOnly=TRUE))
+    knucleotide_brute(commandArgs(trailingOnly=TRUE))

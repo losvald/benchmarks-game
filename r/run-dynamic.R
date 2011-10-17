@@ -55,7 +55,6 @@ main <- function(args) {
     program_args <- parse_program_args(symlink_filename)
     
     src_filepath <- get_src_filepath(symlink_filepath, src_filename)
-
     main_function_name <- get_main_function_name(src_filename)
 
     # override parsed program_args if args are present
@@ -72,7 +71,11 @@ main <- function(args) {
 
     # call main function with appropriate parameters
     assign("i_am_wrapper", TRUE, envir=topenv())
-    source(src_filepath)
+    cmp_filepath = paste(src_filepath, "c", collapse="", sep="")
+    if (substring(symlink_filename, nchar(symlink_filename)) == 'c')
+        compiler::loadcmp(cmp_filepath)
+    else
+        source(src_filepath)
     do.call(main_function_name, as.list(program_args))
 
     # turn off tracing

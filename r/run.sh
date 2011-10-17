@@ -6,4 +6,4 @@ if [ $# -lt 1 ]; then
 fi
 rsrc="$1"
 shift 1
-R --slave -f "$rsrc" --args $@
+R-2_13_1 --slave -f "$rsrc" --args $@

@@ -19,13 +19,14 @@ complement <- function(c)
 
 reversecomplement <- function(args) {
     in_filename = args[[1]]
-    f <- file(in_filename, "r")
-    while (length(s <- readLines(f, n=1, warn=FALSE))) {
-        if (substr(s, 1, 1) == '>')
-            cat(s, "\n", sep="")
+    f <- file(args[[1]], "r")
+    lines <- readLines(f)
+    for (i in 1:length(lines)) {
+        if (substr(lines[[i]], 1, 1) == '>')
+            cat(lines[[i]], "\n", sep="")
         else {
-	    s_len <- seq(1, nchar(s))
-            codes <- substring(s, s_len, s_len)
+	    sq <- seq(1L, nchar(lines[[i]]))
+            codes <- substring(lines[[i]], sq, sq)
             cat(paste(sapply(codes, complement), collapse=""), "\n",
                 sep="")
         }

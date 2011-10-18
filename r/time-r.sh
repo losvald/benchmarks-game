@@ -1,3 +1,7 @@
 #!/bin/sh
-echo "./run.sh $@"
-( time ( ./run.sh $@ > /dev/null 2>&1 ) 2>&1 ) | tail -n 3
+script=`readlink -f $0`
+dir=`dirname $script`
+
+cmd="$dir/run.sh $@"
+echo "$cmd"
+( time ( eval "$cmd" > /dev/null 2>&1 ) 2>&1 ) | tail -n 3

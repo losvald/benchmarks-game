@@ -1,0 +1,1 @@
+^(?!\.hgignore|.*\.cpp|.*\.sh|Makefile)

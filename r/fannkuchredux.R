@@ -26,7 +26,7 @@ fannkuch <- function(n) {
             flip_count <- 1L
             while ((kk <- perm[[k]]) > 1L) {
                 k_range = 1:k
-                perm[k_range] <- rev(perm[k_range])
+                perm[k_range] <- rev.default(perm[k_range])
                 flip_count <- flip_count + 1L
                 k <- kk
                 kk <- perm[kk]

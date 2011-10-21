@@ -9,7 +9,7 @@ lim <- 2
 iter <- 50
 
 mandelbrot <- function(args) {
-    n = ifelse(length(args), as.integer(args[[1]]), 200L)
+    n = if (length(args)) as.integer(args[[1]]) else 200L
     cat("P4\n")
     cat(n, n, "\n")
     bin_con <- pipe("cat", "wb")

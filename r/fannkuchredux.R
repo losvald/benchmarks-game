@@ -32,7 +32,7 @@ fannkuch <- function(n) {
                 kk <- perm[kk]
             }
             max_flip_count <- max(max_flip_count, flip_count)
-            checksum <- checksum + ifelse(perm_sign, flip_count, -flip_count)
+            checksum <- checksum + if (perm_sign) flip_count else -flip_count
         }
 
         # Use incremental change to generate another permutation
@@ -66,7 +66,7 @@ fannkuch <- function(n) {
 }
 
 fannkuchredux <- function(args) {
-    n = ifelse(length(args), as.integer(args[[1]]), 12L)
+    n = if (length(args)) as.integer(args[[1]]) else 12L
     cat("Pfannkuchen(", n, ") = ", fannkuch(n), "\n", sep="")
 }
 

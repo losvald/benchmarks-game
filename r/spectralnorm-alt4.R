@@ -6,13 +6,12 @@
 # ------------------------------------------------------------------
 
 spectralnorm_4 <- function(args) {
-    n = ifelse(length(args), as.integer(args[[1]]), 100L)
+    n = if (length(args)) as.integer(args[[1]]) else 100L
     options(digits=10)
 
     eval_A <- function(i, j)
-        return(ifelse(
-            eval_A_cache[[i, j]] != 0, eval_A_cache[[i, j]],
-            eval_A_cache[[i, j]] <<- 1 / ((i + j - 2) * (i + j - 1) / 2 + i)))
+        return(if (eval_A_cache[[i, j]] != 0) eval_A_cache[[i, j]] else
+            eval_A_cache[[i, j]] <<- 1 / ((i + j - 2) * (i + j - 1) / 2 + i))
     eval_A_times_u <- function(u) {
         #    eval_A_mat <- outer(seq(n), seq(n), FUN=eval_A)
         eval_A_mat <- matrix(0, n, n)

@@ -101,7 +101,7 @@ random_fasta <- function(genelist, count) {
 }
 
 fastaredux <- function(args) {
-    n = ifelse(length(args), as.integer(args[[1]]), 1000)
+    n = if (length(args)) as.integer(args[[1]]) else 1000L
     cat(">ONE Homo sapiens alu\n")
     repeat_fasta(alu, 2 * n)
     cat(">TWO IUB ambiguity codes\n")

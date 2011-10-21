@@ -97,7 +97,7 @@ energy <- function() {
 }
 
 nbody_3 <- function(args) {
-    n = ifelse(length(args), as.integer(args[[1]]), 1000L)
+    n = if (length(args)) as.integer(args[[1]]) else 1000L
     options(digits=9)
     offset_momentum()
     cat(energy(), "\n")

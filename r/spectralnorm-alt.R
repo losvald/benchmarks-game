@@ -6,7 +6,7 @@
 # ------------------------------------------------------------------
 
 spectralnorm <- function(args) {
-    n = ifelse(length(args), as.integer(args[[1]]), 100L)
+    n = if (length(args)) as.integer(args[[1]]) else 100L
     options(digits=10)
 
     eval_A <- function(i, j) 1 / ((i + j - 2) * (i + j - 1) / 2 + i)

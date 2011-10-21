@@ -14,9 +14,7 @@ tree <- function(item, depth) {
 }
 
 check <- function(tree)
-    ifelse(is.na(tree[[2]][[1]]),
-	tree[[1]],
-	tree[[1]] + check(tree[[2]]) - check(tree[[3]]))
+    if(is.na(tree[[2]][[1]])) tree[[1]] else tree[[1]] + check(tree[[2]]) - check(tree[[3]])
 
 binarytrees_2 <- function(args) {
     n = ifelse(length(args), as.integer(args[[1]]), 10L)

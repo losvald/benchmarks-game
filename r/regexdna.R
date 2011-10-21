@@ -33,7 +33,7 @@ pattern2 <- matrix(c(
 match_count <- function(ms) {
     l <- length(ms[[1]])
     fst <- ms[[1]][[1]]
-    return(ifelse(l > 1, l, ifelse(fst != -1L, fst, 0)))
+    return(if (l > 1) l else if (fst != -1L) fst else 0)
 }
 
 regexdna <- function(args) {

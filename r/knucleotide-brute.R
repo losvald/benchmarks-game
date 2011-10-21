@@ -69,13 +69,12 @@ knucleotide_brute <- function(args) {
             break
         n <- n + 1L
 	# ensure O(N) resizing (instead of O(N^2))
-        str_buf[[cap <- ifelse(cap < n, 2L * cap, cap)]] <- ""
+        str_buf[[cap <- if (cap < n) 2L * cap else cap]] <- ""
         str_buf[[n]] <- line
     }
     length(str_buf) <- n
     close(f)
     seq <- paste(str_buf, collapse="")
-
 
     sort_seq(seq, 2)
     for (s in c("GGT", "GGTA", "GGTATT", "GGTATTTTAATT", "GGTATTTTAATTTATAGT"))

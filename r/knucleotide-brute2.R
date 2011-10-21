@@ -18,7 +18,7 @@ gen_freq <- function(seq, frame) {
             cnt <- 0L
             # ensure O(N) resizing (instead of O(N^2))
             n <- n + 1L
-            freqs[[cap <- ifelse(cap < n, 2L * cap, cap)]] <- 0L
+            freqs[[cap <- if (cap < n) 2L * cap else cap]] <- 0L
         }
         attr(freqs, subseq) <- cnt + 1L
     }
@@ -76,7 +76,7 @@ knucleotide_brute2 <- function(args) {
             break
         n <- n + 1L
 	# ensure O(N) resizing (instead of O(N^2))
-        str_buf[[cap <- ifelse(cap < n, 2L * cap, cap)]] <- ""
+        str_buf[[cap <- if (cap < n) 2L * cap else cap]] <- ""
         str_buf[[n]] <- line
     }
     length(str_buf) <- n

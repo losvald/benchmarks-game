@@ -38,7 +38,7 @@ bigint <- function(s, i=NA) {
     if (!is.na(i)) {
         s <- as.character(i)
         #x <- abs(i)
-        #sgn <- ifelse(i < 0L, -1L, 1L)
+        #sgn <- if (i < 0L) -1L else 1L
         #while (i >= max_elem) {
         #}
      }
@@ -51,7 +51,7 @@ bigint <- function(s, i=NA) {
             sgn <- 1L
         }
 #    }
-    return(c(ifelse(length(mag), sgn, 0L), mag))
+    return(c(if (length(mag)) sgn else 0L, mag))
 }
 
 to_int <- function(x) {
@@ -75,7 +75,7 @@ mag_to_str <- function(x) {
 to_str <- function(x) {
     if (x[[1]] == 0L)
         return("0")
-    return(paste(sep="", ifelse(x[[1]] < 0L, '-', ''), mag_to_str(mag(x))))
+    return(paste(sep="", if (x[[1]] < 0L) '-' else '', mag_to_str(mag(x))))
 }
 
 # Comparison functions
@@ -182,14 +182,14 @@ sub_mag <- function(big, little) {
     # subtract common parts of both numbers
     while (little_index > 0L) {
         difference <- (big[[big_index]] - little[[little_index]] +
-                       ifelse(difference < 0L, -1L, 0L))
+                       if (difference < 0L) -1L else 0L)
         result[[big_index]] <- difference %% elem_max
         big_index <- big_index - 1L
         little_index <- little_index - 1L
     }
 
     # subtract remainder of longer number while borrow propagates
-    borrow <- ifelse(difference < 0L, -1, 0L)
+    borrow <- if (difference < 0L) -1 else 0L
     while (big_index > 0L && borrow) {
         borrow <- (result[[big_index]] <- big[[big_index]] - 1L) == -1L
         big_index <- big_index - 1L
@@ -340,7 +340,7 @@ zeropad <- function(s, n)
 # PIDIGITS program
 
 pidigits <- function(args) {
-    N = ifelse(length(args), as.integer(args[[1]]), 100L)
+    N = if (length(args)) as.integer(args[[1]]) else 100L
     ONE = one
     TWO = bigint("2")
     TEN = bigint("10")

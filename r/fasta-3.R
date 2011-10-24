@@ -70,13 +70,22 @@ random_fasta <- function(genelist, count) {
         for (i in 1:line)
           rs[[i]] <- myrandom(1)
 
-	# Linear search (vectorized)
+	# Binary search (vectorized)
 	inds <- 1:line
-       	lo <- rep.int(1L, line)
-	while (length(inds <- which(psum[lo] < rs)))
-	    lo[inds] <- lo[inds] + 1L
+       	lo <- rep.int(1L, line); hi <- rep.int(n, line)
+	mid <- integer(line)
+	repeat {
+	    mid[inds] <- (lo[inds] + hi[inds] - 1L) %/% 2
+	    ge_inds = which(psum[mid] >= rs)
+	    hi[ge_inds] <- mid[ge_inds]
+	    lt_inds = which(psum[mid] < rs)
+	    lo[lt_inds] <- mid[lt_inds] + 1L
+	    inds <- which(lo < hi)
+	    if (!length(inds))
+	        break
+	}
 
-	cat(genelist[2, lo], "\n", sep='')
+	cat(genelist[2, hi], "\n", sep='')
 	count <- count - line
     }
 }

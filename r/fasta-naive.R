@@ -47,14 +47,18 @@ homosapiens <- matrix(c(
 ), 2)
 
 repeat_fasta <- function(s, count) {
-    chars <- strsplit(s, split="")[[1]]
-    len <- nchar(s)
-    s2 <- c(chars, chars[1:width])
+    chars = strsplit(s, split="")[[1]]
+    len = nchar(s)
+    s2 <- character(len + width)
+    for (i in 1:len)
+        s2[[i]] <- chars[[i]]
+    for (i in 1:width)
+        s2[[len + i]] <- chars[[i]]
     pos <- 1L
     while (count) {
-	line <- min(width, count)
+	line = min(width, count)
         next_pos <- pos + line
-        cat(s2[pos:(next_pos - 1)], "\n", sep="")
+        cat(paste(s2[pos:(next_pos - 1)], collapse="", sep=""), "\n", sep="")
         pos <- next_pos
         if (pos > len) pos <- pos - len
 	count <- count - line
@@ -65,18 +69,16 @@ random_fasta <- function(genelist, count) {
     psum = cumsum(genelist[1,])
     n = length(psum)
     while (count) {
-	line = min(width, count) 
-        rs <- double(line)
-        for (i in 1:line)
-          rs[[i]] <- myrandom(1)
-
-	# Linear search (vectorized)
-	inds <- 1:line
-       	lo <- rep.int(1L, line)
-	while (length(inds <- which(psum[lo] < rs)))
-	    lo[inds] <- lo[inds] + 1L
-
-	cat(genelist[2, lo], "\n", sep='')
+	line = min(width, count)
+       	seq <- character(line)
+        for (i in 1:line) {
+            r <- myrandom(1)
+            lo <- 1L
+            while (psum[[lo]] < r)
+                lo <- lo + 1L
+            seq[[i]] <- genelist[[2, lo]]
+        }
+	cat(paste(seq, collapse="", sep=""), "\n", sep='')
 	count <- count - line
     }
 }

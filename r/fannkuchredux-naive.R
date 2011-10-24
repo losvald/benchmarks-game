@@ -6,10 +6,6 @@
 # ------------------------------------------------------------------
 
 fannkuch <- function(n) {
-    one_two = c(1, 2)
-    two_one = c(2, 1)
-    two_three = c(2, 3)
-    three_two = c(3, 2)
     if (n > 3L)
         rxrange = 3:(n - 1)
     else
@@ -25,8 +21,10 @@ fannkuch <- function(n) {
             perm <- perm1
             flip_count <- 1L
             while ((kk <- perm[[k]]) > 1L) {
-                k_range = 1:k
-                perm[k_range] <- rev.default(perm[k_range])
+		for (lo in 1:(k %/% 2L)) {
+		  hi = k - lo + 1L
+		  t <- perm[[lo]]; perm[[lo]] <- perm[[hi]]; perm[[hi]] <- t
+                }
                 flip_count <- flip_count + 1L
                 k <- kk
                 kk <- perm[[kk]]
@@ -37,10 +35,10 @@ fannkuch <- function(n) {
 
         # Use incremental change to generate another permutation
         if (perm_sign) {
-            perm1[one_two] <- perm1[two_one]
+	    t <- perm1[[1]]; perm1[[1]] <- perm1[[2]]; perm1[[2]] <- t
             perm_sign = FALSE
         } else {
-            perm1[two_three] <- perm1[three_two]
+	    t <- perm1[[2]]; perm1[[2]] <- perm1[[3]]; perm1[[3]] <- t
             perm_sign = TRUE
             was_break <- FALSE
             for (r in rxrange) {
@@ -50,7 +48,8 @@ fannkuch <- function(n) {
                 }
                 count[[r]] <- r - 1L
                 perm0 <- perm1[[1L]]
-                perm1[1:r] <- perm1[2:(r + 1L)]
+		for (i in 1:r)
+		  perm1[[i]] <- perm1[[i + 1L]]
                 perm1[[r + 1L]] <- perm0
             }
             if (!was_break) {

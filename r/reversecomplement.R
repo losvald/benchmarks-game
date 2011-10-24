@@ -14,7 +14,6 @@ complements <- c(
 comp_map <- NULL
 comp_map[codes] <- complements
 comp_map[tolower(codes)] <- complements
-complement <- function(c) comp_map[[c]]
 
 reversecomplement <- function(args) {
     in_filename = args[[1]]
@@ -25,8 +24,7 @@ reversecomplement <- function(args) {
         else {
 	    s_len <- seq(1, nchar(s))
             codes <- substring(s, s_len, s_len)
-            cat(paste(sapply(codes, complement), collapse=""), "\n",
-                sep="")
+            cat(paste(comp_map[codes], collapse=""), "\n", sep="")
         }
     }
     close(f)

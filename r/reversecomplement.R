@@ -14,8 +14,7 @@ complements <- c(
 comp_map <- NULL
 comp_map[codes] <- complements
 comp_map[tolower(codes)] <- complements
-complement <- function(c)
-    return(comp_map[[c]])
+complement <- function(c) comp_map[[c]]
 
 reversecomplement <- function(args) {
     in_filename = args[[1]]

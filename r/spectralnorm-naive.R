@@ -5,29 +5,23 @@
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-spectralnorm_5 <- function(args) {
+spectralnorm_naive <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 100L
     options(digits=10)
 
     eval_A <- function(i, j) 1 / ((i + j) * (i + j + 1) / 2 + i + 1)
     eval_A_times_u <- function(u) {
-        ret <- double(n)
-        for (i in 0:n1) {
-            eval_A_col <- double(n)
-            for (j in 0:n1)
-	    eval_A_col[[j + 1]] <- eval_A(i, j)
-            ret[[i + 1]] <- u %*% eval_A_col
-        }
+        ret <- rep(0, n)
+        for (i in 1:n)
+	    for (j in 0:n1)
+                ret[[i]] <- ret[[i]] + u[[j + 1]] * eval_A(i - 1, j)
         return(ret)
     }
     eval_At_times_u <- function(u) {
-        ret <- double(n)
-        for (i in 0:n1) {
-            eval_At_col <- double(n)
-            for (j in 0:n1)
-	    eval_At_col[[j + 1]] <- eval_A(j, i)
-            ret[[i + 1]] <- u %*% eval_At_col
-        }
+        ret <- rep(0, n)
+        for (i in 1:n)
+	    for (j in 0:n1)
+                ret[[i]] <- ret[[i]] + u[[j + 1]] * eval_A(j, i - 1)
         return(ret)
     }
     eval_AtA_times_u <- function(u) eval_At_times_u(eval_A_times_u(u))
@@ -44,4 +38,4 @@ spectralnorm_5 <- function(args) {
 }
 
 if (!exists("i_am_wrapper"))
-    spectralnorm_5(commandArgs(trailingOnly=TRUE))
+    spectralnorm_naive(commandArgs(trailingOnly=TRUE))

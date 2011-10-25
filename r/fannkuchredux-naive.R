@@ -64,10 +64,10 @@ fannkuch <- function(n) {
     }
 }
 
-fannkuchredux <- function(args) {
+fannkuchredux_naive <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 12L
     cat("Pfannkuchen(", n, ") = ", fannkuch(n), "\n", sep="")
 }
 
 if (!exists("i_am_wrapper"))
-    fannkuchredux(commandArgs(trailingOnly=TRUE))
+    fannkuchredux_naive(commandArgs(trailingOnly=TRUE))

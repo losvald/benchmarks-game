@@ -15,7 +15,7 @@ comp_map <- NULL
 comp_map[codes] <- complements
 comp_map[tolower(codes)] <- complements
 
-reversecomplement <- function(args) {
+reversecomplement_2 <- function(args) {
     f <- file(args[[1]], "r")
     lines <- readLines(f)
     for (i in 1:length(lines)) {
@@ -32,4 +32,4 @@ reversecomplement <- function(args) {
 }
 
 if (!exists("i_am_wrapper"))
-    reversecomplement(commandArgs(trailingOnly=TRUE))
+    reversecomplement_2(commandArgs(trailingOnly=TRUE))

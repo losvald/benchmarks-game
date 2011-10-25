@@ -83,7 +83,7 @@ random_fasta <- function(genelist, count) {
     }
 }
 
-fasta <- function(args) {
+fasta_naive <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 1000L
     cat(">ONE Homo sapiens alu\n")
     repeat_fasta(alu, 2 * n)
@@ -94,4 +94,4 @@ fasta <- function(args) {
 }
 
 if (!exists("i_am_wrapper"))
-    fasta(commandArgs(trailingOnly=TRUE))
+    fasta_naive(commandArgs(trailingOnly=TRUE))

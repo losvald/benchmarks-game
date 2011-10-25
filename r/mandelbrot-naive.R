@@ -8,7 +8,7 @@
 lim <- 2
 iter <- 50
 
-mandelbrot <- function(args) {
+mandelbrot_naive <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 200L
     cat("P4\n")
     cat(n, n, "\n")
@@ -38,4 +38,4 @@ mandelbrot <- function(args) {
 }
 
 if (!exists("i_am_wrapper"))
-    mandelbrot(commandArgs(trailingOnly=TRUE))
+    mandelbrot_naive(commandArgs(trailingOnly=TRUE))

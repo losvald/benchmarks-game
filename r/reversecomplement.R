@@ -19,11 +19,10 @@ reversecomplement <- function(args) {
     in_filename = args[[1]]
     f <- file(in_filename, "r")
     while (length(s <- readLines(f, n=1, warn=FALSE))) {
-        if (substr(s, 1, 1) == '>')
+        codes <- strsplit(s, split="")[[1]]
+        if (codes[[1]] == '>')
             cat(s, "\n", sep="")
         else {
-	    s_len <- seq(1, nchar(s))
-            codes <- substring(s, s_len, s_len)
             cat(paste(comp_map[codes], collapse=""), "\n", sep="")
         }
     }

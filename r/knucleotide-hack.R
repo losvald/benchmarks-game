@@ -6,18 +6,25 @@
 # ------------------------------------------------------------------
 
 gen_freq <- function(seq, frame) {
-    frame <- frame - 1L
-    ns <- length(seq) - frame
+    seq_len <- nchar(seq)
+    ns <- seq_len - frame + 1L
     h <- new.env(emptyenv(), hash=TRUE)
+    subseqs <- substr_fast(seq, 1:ns, frame:seq_len)
     for (i in 1:ns) {
-        subseq_str = paste(seq[i:(i + frame)], collapse="", sep="")
-	if (exists(subseq_str, h, inherits=FALSE))
-	    cnt <- get(subseq_str, h, inherits=FALSE)
+	if (exists(subseqs[[i]], h, inherits=FALSE))
+	    cnt <- get(subseqs[[i]], h, inherits=FALSE)
 	else
 	    cnt <- 0L
-	assign(subseq_str, cnt + 1L, h)
+	assign(subseqs[[i]], cnt + 1L, h)
     }
     return(sapply(ls(h), function(k) get(k, h, inherits=FALSE)))
+}
+
+
+substr_fast <- function (x, start, stop) {
+      if (!is.character(x))
+          x <- as.character(x)
+     .Internal(substr_fast(x, as.integer(start), as.integer(stop)))
 }
 
 sort_seq <- function(seq, len) {
@@ -35,7 +42,7 @@ find_seq <- function(seq, s) {
     return(0L)
 }
 
-knucleotide <- function(args) {
+knucleotide_2 <- function(args) {
     in_filename = args[[1]]
     f <- file(in_filename, "r")
     while (length(line <- readLines(f, n=1, warn=FALSE))) {
@@ -59,7 +66,7 @@ knucleotide <- function(args) {
     }
     length(str_buf) <- n
     close(f)
-    seq <- strsplit(paste(str_buf, collapse=""), split="")[[1]]
+    seq <- paste(str_buf, collapse="")
 
     sort_seq(seq, 2)
     for (s in c("GGT", "GGTA", "GGTATT", "GGTATTTTAATT", "GGTATTTTAATTTATAGT"))
@@ -81,4 +88,4 @@ paste. <- function (..., digits=16, sep=" ", collapse=NULL) {
 }
 
 if (!exists("i_am_wrapper"))
-    knucleotide(commandArgs(trailingOnly=TRUE))
+    knucleotide_2(commandArgs(trailingOnly=TRUE))

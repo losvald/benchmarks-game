@@ -15,20 +15,26 @@ comp_map <- NULL
 comp_map[codes] <- complements
 comp_map[tolower(codes)] <- complements
 
-reversecomplement_2 <- function(args) {
-    f <- file(args[[1]], "r")
-    lines <- readLines(f)
-    for (i in 1:length(lines)) {
-        codes <- strsplit(lines[[i]], split="")[[1]]
+substr_fast <- function (x, start, stop) {
+      if (!is.character(x))
+          x <- as.character(x)
+     .Internal(substr_fast(x, as.integer(start), as.integer(stop)))
+}
+
+reversecomplement <- function(args) {
+    in_filename = args[[1]]
+    f <- file(in_filename, "r")
+    while (length(s <- readLines(f, n=1, warn=FALSE))) {
+	range <- seq(1, nchar(s))
+        codes <- substr_fast(s, range, range)
         if (codes[[1]] == '>')
-            cat(lines[[i]], "\n", sep="")
+            cat(s, "\n", sep="")
         else {
-            cat(paste(comp_map[codes], collapse=""), "\n",
-                sep="")
+            cat(paste(comp_map[codes], collapse=""), "\n", sep="")
         }
     }
     close(f)
 }
 
 if (!exists("i_am_wrapper"))
-    reversecomplement_2(commandArgs(trailingOnly=TRUE))
+    reversecomplement(commandArgs(trailingOnly=TRUE))

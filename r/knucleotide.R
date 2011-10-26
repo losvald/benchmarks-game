@@ -61,7 +61,8 @@ knucleotide <- function(args) {
     close(f)
     seq <- strsplit(paste(str_buf, collapse=""), split="")[[1]]
 
-    sort_seq(seq, 2)
+    for (frame in 1:2)
+        sort_seq(seq, frame)
     for (s in c("GGT", "GGTA", "GGTATT", "GGTATTTTAATT", "GGTATTTTAATTTATAGT"))
         cat(find_seq(seq, tolower(s)), sep="\t", s, "\n")
 }

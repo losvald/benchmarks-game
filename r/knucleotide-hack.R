@@ -42,7 +42,7 @@ find_seq <- function(seq, s) {
     return(0L)
 }
 
-knucleotide_2 <- function(args) {
+knucleotide_hack <- function(args) {
     in_filename = args[[1]]
     f <- file(in_filename, "r")
     while (length(line <- readLines(f, n=1, warn=FALSE))) {
@@ -89,4 +89,4 @@ paste. <- function (..., digits=16, sep=" ", collapse=NULL) {
 }
 
 if (!exists("i_am_wrapper"))
-    knucleotide_2(commandArgs(trailingOnly=TRUE))
+    knucleotide_hack(commandArgs(trailingOnly=TRUE))

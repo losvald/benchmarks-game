@@ -74,9 +74,11 @@ knucleotide_brute <- function(args) {
     }
     length(str_buf) <- n
     close(f)
+
     seq <- paste(str_buf, collapse="")
 
-    sort_seq(seq, 2)
+    for (frame in 1:2)
+        sort_seq(seq, frame)
     for (s in c("GGT", "GGTA", "GGTATT", "GGTATTTTAATT", "GGTATTTTAATTTATAGT"))
         cat(find_seq(seq, tolower(s)), sep="\t", s, "\n")
 }

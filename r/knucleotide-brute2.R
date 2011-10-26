@@ -25,19 +25,6 @@ gen_freq <- function(seq, frame) {
     return(freqs)
 }
 
-gen_freq <- function(seq, frame) {
-    frame <- frame - 1L
-    ns <- nchar(seq) - frame
-    freqs <- integer(0)
-    for (i in 1:ns) {
-        subseq = substr(seq, i, i + frame)
-        cnt <- attr(freqs, subseq)
-        if (is.null(cnt)) cnt <- 0L
-        attr(freqs, subseq) <- cnt + 1L
-    }
-    return(freqs)
-}
-
 sort_seq <- function(seq, len) {
     cnt_map <- gen_freq(seq, len)
     #print(cnt_map)
@@ -83,8 +70,8 @@ knucleotide_brute2 <- function(args) {
     close(f)
     seq <- paste(str_buf, collapse="")
 
-
-    sort_seq(seq, 2)
+    for (frame in 1:2)
+        sort_seq(seq, frame)
     for (s in c("GGT", "GGTA", "GGTATT", "GGTATTTTAATT", "GGTATTTTAATTTATAGT"))
         cat(find_seq(seq, tolower(s)), sep="\t", s, "\n")
 }

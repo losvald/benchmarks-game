@@ -1,5 +1,5 @@
-all: binarytrees fannkuchredux fasta fastaredux mandelbrot nbody regexdna reversecomplement spectralnorm
-clean: clean-binarytrees clean-fannkuchredux clean-fasta clean-fastaredux clean-mandelbrot clean-nbody clean-regexdna clean-reversecomplement clean-spectralnorm
+all: binarytrees fannkuchredux fasta fastaredux knucleotide mandelbrot nbody regexdna reversecomplement spectralnorm
+clean: clean-binarytrees clean-fannkuchredux clean-fasta clean-fastaredux clean-knucleotide clean-mandelbrot clean-nbody clean-regexdna clean-reversecomplement clean-spectralnorm
 
 BINARYTREES=binarytrees
 BINARYTREES_SRC=$(BINARYTREES).c
@@ -32,6 +32,15 @@ fastaredux: $(FASTAREDUX_SRC)
 	gcc -o $(FASTAREDUX)-tweaked -pipe -Wall -O3 -fomit-frame-pointer -march=native -std=c99 -mfpmath=sse -msse3 $(FASTAREDUX_SRC)
 clean-fastaredux:
 	rm -f $(FASTAREDUX){,-tweaked}
+
+KNUCLEOTIDE=knucleotide
+KNUCLEOTIDE_SRC=$(KNUCLEOTIDE).c
+KNUCLEOTIDE_INCLUDE = Include/simple_hash3.h
+knucleotide: $(KNUCLEOTIDE_SRC)
+	gcc -o $(KNUCLEOTIDE) -O3 -Wall -std=c99 -include $(KNUCLEOTIDE_INCLUDE) $(KNUCLEOTIDE_SRC)
+	gcc -o $(KNUCLEOTIDE)-tweaked -pipe -Wall -O3 -fomit-frame-pointer -march=native -std=c99 -include $(KNUCLEOTIDE_INCLUDE) $(KNUCLEOTIDE_SRC)
+clean-knucleotide:
+	rm -f $(KNUCLEOTIDE){,-tweaked}
 
 MANDELBROT=mandelbrot
 MANDELBROT_SRC=$(MANDELBROT).c

@@ -412,8 +412,8 @@ void PiDigits(int limit) {
     d = d * k2;
     if (a >= n) {
       BigInt three_n_plus_a = n * kThree + a;
-      t = three_n_plus_a / d;
-      // u = three_n_plus_a % d + n;
+      // t = three_n_plus_a / d;
+      u = three_n_plus_a % d + n;
       BigInt td = t * d;
       u = three_n_plus_a - td + n;
       if (d > u) {
@@ -428,7 +428,7 @@ void PiDigits(int limit) {
         }
         if (i >= limit)
           break;
-        a = (a - td) * BigInt::kTen;  // TODO use precomputed d * t
+        a = (a - td) * BigInt::kTen;
         n = n * BigInt::kTen;
       }
     }

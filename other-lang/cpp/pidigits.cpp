@@ -6,9 +6,16 @@
  */
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <vector>
 #include <string>
+
+template<typename T>
+T Log10(const T& x) {
+  static const T kLog10 = log(10.);
+  return log(x) / kLog10;
+}
 
 typedef std::vector<int> Magnitude;
 
@@ -306,17 +313,28 @@ private:
   }
 
   static Magnitude DivMag(const Magnitude& mx, const Magnitude& my) {
+    static const double kBinarySearchThresFactor = 
+      4. * Log10<double>(kElemMax) + 1;
     if (my == kOne.m)
       return mx;
 
     BigInt x(1, mx), y(1, my);
-    BigInt lo = kOne, hi = x.Div2();
-    while (lo < hi) {
-      BigInt mid = (lo + hi + kOne).Div2();
-      if (mid * y <= x)
-        lo = mid;
-      else
-        hi = mid - kOne;
+    BigInt lo = kOne;
+    const double kBinarySearchThres = 
+      kBinarySearchThresFactor * Log10<double>(mx.size());
+    if (mx.size() - my.size() > kBinarySearchThres) {  // do binary search
+      BigInt hi = x.Div2();
+      while (lo < hi) {
+	BigInt mid = (lo + hi + kOne).Div2();
+	if (mid * y <= x)
+	  lo = mid;
+	else
+	  hi = mid - kOne;
+      }
+    } else {  // do linear search
+      while (lo * y <= x)
+	lo = lo + kOne;
+      lo = lo - kOne;
     }
     return lo.m;
   }

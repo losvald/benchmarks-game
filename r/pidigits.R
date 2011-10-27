@@ -8,6 +8,7 @@ one = c(1L, one_mag)
 
 elem_max = 10000
 elem_digits = as.integer(log10(elem_max))
+binary_search_div_thres_factor = 4 * (log(elem_max, 2) + 1)
 
 signum <- function(v) v[[1]]
 mag <- function(v) v[2:length(v)]
@@ -33,7 +34,7 @@ str_to_mag <- function(s) {
     }
     return(sapply(chunks, as.integer))
 }
-
+hi =
 bigint <- function(s, i=NA) {
     if (!is.na(i)) {
         s <- as.character(i)
@@ -273,14 +274,22 @@ div_mag <- function(mx, my) {
 
     x <- c(1L, mx)
     y <- c(1L, my)
+    x_len = length(mx); y_len = length(my)
+    binary_search_thres = binary_search_div_thres_factor * (log(x_len, 10) + 1)
     lo <- one
-    hi <- div2(x)
-    while (lt(lo, hi)) {
-        mid <- div2(add(add(lo, hi), one))
-        if (le(mul(mid, y), x))
-            lo <- mid
-        else
-            hi <- sub(mid, one)
+    if (x_len - y_len > binary_search_thres) {  # do binary search
+        hi <- div2(x)
+        while (lt(lo, hi)) {
+            mid <- div2(add(add(lo, hi), one))
+            if (le(mul(mid, y), x))
+                lo <- mid
+            else
+                hi <- sub(mid, one)
+        }
+    } else {  # do linear search
+        while (le(mul(lo, y), x))
+	    lo <- add(lo, one)
+	lo <- sub(lo, one)
     }
     return(mag(lo))
 }
@@ -368,7 +377,7 @@ pidigits <- function(args) {
                 if (i %% 5L == 0L) {
 		    cat(zeropad(as.character(ns), 5))
 		    if (i %% 2L == 0L)
-                       cat(sep="", "\t", i, "\n")
+                       cat(sep="", "\t:", i, "\n")
                     ns = 0L
                 }
                 if (i >= N)

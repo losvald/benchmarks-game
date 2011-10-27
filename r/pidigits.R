@@ -5,10 +5,11 @@ zero_mag = integer(0)
 zero = c(0L, zero_mag)  # ( = 0L )
 one_mag = c(1L)
 one = c(1L, one_mag)
+ten_mag = c(10L)
+ten = c(1L, ten_mag)
 
 elem_max = 10000
 elem_digits = as.integer(log10(elem_max))
-binary_search_div_thres_factor = 4 * (log(elem_max, 2) + 1)
 
 signum <- function(v) v[[1]]
 mag <- function(v) v[2:length(v)]
@@ -268,28 +269,35 @@ mul <- function(x, y) {
             strip_leading_zero_elems(multiply_mag(mag(x), mag(y)))))
 }
 
-div_mag <- function(mx, my) {
-    if (length(my) == 1L && my == one_mag)
-        return(mx)
+div_mag <- function(x_mag, y_mag) {
+    if (length(y_mag) == 1L && y_mag == one_mag)
+        return(x_mag)
 
-    x <- c(1L, mx)
-    y <- c(1L, my)
-    x_len = length(mx); y_len = length(my)
-    binary_search_thres = binary_search_div_thres_factor * (log(x_len, 10) + 1)
-    lo <- one
-    if (x_len - y_len > binary_search_thres) {  # do binary search
-        hi <- div2(x)
-        while (lt(lo, hi)) {
-            mid <- div2(add(add(lo, hi), one))
-            if (le(mul(mid, y), x))
-                lo <- mid
-            else
-                hi <- sub(mid, one)
+    x <- c(1L, x_mag)
+    y <- c(1L, y_mag)
+    x_mag_log10 = log10_mag(x_mag); y_mag_log10 = log10_mag(y_mag)
+    lo_log10 = x_mag_log10 - y_mag_log10 - (x_mag_log10 != y_mag_log10)
+    hi_log10 <- x_mag_log10 - y_mag_log10 + 1L
+    lo <- bigint_pow10(lo_log10)
+
+    # try pruning hi > 10 or lo <= 10
+    if (lo_log10 == 0L && hi_log10 > 1L) {
+        lo10 = mul(lo, ten)
+        if (gt(mul(lo10, y), x))
+            hi <- lo10
+        else {
+            lo <- lo10
+            hi <- bigint_pow10(hi_log10)
         }
-    } else {  # do linear search
-        while (le(mul(lo, y), x))
-	    lo <- add(lo, one)
-	lo <- sub(lo, one)
+    } else
+      hi <- bigint_pow10(hi_log10)
+
+    while (lt(lo, hi)) {
+        mid <- div2(add(add(lo, hi), one))
+        if (le(mul(mid, y), x))
+            lo <- mid
+        else
+            hi <- sub(mid, one)
     }
     return(mag(lo))
 }
@@ -333,6 +341,10 @@ div2 <- function(x) {
     return(c(x[[1]], div2_mag(mag(x))))
 }
 
+log10_mag <- function(m) elem_digits * (length(m) - 1L) + as.integer(log(m[[1]], 10))
+
+bigint_pow10 <- function(n) c(1L, as.integer(10^(n %% elem_digits)), rep.int(0L, n %/% elem_digits))
+
 # Misc functions
 sign_prod <- function(x, y) (x == y) - (x != y)
 strip_leading_zero_elems <- function(x) {
@@ -343,7 +355,7 @@ strip_leading_zero_elems <- function(x) {
 }
 
 zeropad <- function(s, n)
-    paste(sep="", paste(collapse="", rep('0', max(0, n - nchar(s)))), s)
+    paste(sep="", paste(collapse="", rep('0', max(0L, n - nchar(s)))), s)
 
 
 # PIDIGITS program
@@ -370,7 +382,8 @@ pidigits <- function(args) {
         if (ge(a, n)) {
             n3a <- add(mul(n, THREE), a)
             t <- div(n3a, d)
-            u <- add(sub(n3a, mul(t, d)), n)
+	    td = mul(t, d)
+            u <- add(sub(n3a, td), n)
             if (gt(d, u)) {
                 ns <- ns * 10L + to_int(t)
                 i <- i + 1L
@@ -382,7 +395,7 @@ pidigits <- function(args) {
                 }
                 if (i >= N)
                     break
-                a <- sub(a, mul(t, d))  # TODO use td
+                a <- sub(a, td)  # TODO use td
                 a <- mul(a, TEN)
                 n <- mul(n, TEN)
             }

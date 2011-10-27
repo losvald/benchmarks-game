@@ -27,7 +27,7 @@ typedef std::vector<int> Magnitude;
 class BigInt {
 public:
   static const int kElemMax = 10000;
-  static const int kElemDigits = 4;
+  static const std::size_t kElemDigits = 4;
   static const BigInt kTen;
   static const BigInt kZero;
   static const BigInt kOne;
@@ -286,7 +286,6 @@ private:
   }
 
   static Magnitude MulMag(const Magnitude& x, const Magnitude& y) {
-//    std::cout << "> MulMag" << std::endl;
     int x_start = x.size() - 1;
     int y_start = y.size() - 1;
     Magnitude c(x.size() + y.size());
@@ -308,33 +307,39 @@ private:
       }
       c[i] = carry % kElemMax;
     }
-//    std::cout << "< MulMag" << std::endl;
     return c;
   }
 
-  static Magnitude DivMag(const Magnitude& mx, const Magnitude& my) {
-    static const double kBinarySearchThresFactor = 
-      4. * Log10<double>(kElemMax) + 1;
-    if (my == kOne.m)
-      return mx;
+  static Magnitude DivMag(const Magnitude& x_mag, const Magnitude& y_mag) {
+    if (y_mag == kOne.m)
+      return x_mag;
 
-    BigInt x(1, mx), y(1, my);
-    BigInt lo = kOne;
-    const double kBinarySearchThres = 
-      kBinarySearchThresFactor * Log10<double>(mx.size());
-    if (mx.size() - my.size() > kBinarySearchThres) {  // do binary search
-      BigInt hi = x.Div2();
-      while (lo < hi) {
-	BigInt mid = (lo + hi + kOne).Div2();
-	if (mid * y <= x)
-	  lo = mid;
-	else
-	  hi = mid - kOne;
+    BigInt x(1, x_mag), y(1, y_mag);
+    const std::size_t x_mag_log10 = Log10Mag(x_mag);
+    const std::size_t y_mag_log10 = Log10Mag(y_mag);
+    const std::size_t lo_log10 = x_mag_log10 - y_mag_log10 -
+      (x_mag_log10 != y_mag_log10);
+    const std::size_t hi_log10 = x_mag_log10 - y_mag_log10 + 1;
+    BigInt lo = Pow10(lo_log10), hi;
+
+    // try pruning hi > 10 or lo <= 10
+    if (lo_log10 == 0 && hi_log10 > 1) {
+      const BigInt lo10 = lo * kTen;
+      if (lo10 * y > x)
+	hi = lo10;
+      else {
+	lo = lo10;
+	hi = Pow10(hi_log10);
       }
-    } else {  // do linear search
-      while (lo * y <= x)
-	lo = lo + kOne;
-      lo = lo - kOne;
+    } else
+      hi = Pow10(hi_log10);
+
+    while (lo < hi) {
+      BigInt mid = (lo + hi + kOne).Div2();
+      if (mid * y <= x)
+	lo = mid;
+      else
+	hi = mid - kOne;
     }
     return lo.m;
   }
@@ -353,6 +358,20 @@ private:
       borrow = d % 2;
     }
     return result;
+  }
+
+  static inline std::size_t Log10Mag(const Magnitude& m) {
+    return kElemDigits * (m.size() - 1U) + 
+      (std::size_t)Log10<double>(m[0]);
+  }
+
+  static inline BigInt Pow10(std::size_t n) {
+    std::size_t n_div = n / kElemDigits;
+    std::size_t n_mod = n - n_div * kElemDigits;
+    Magnitude m(1 + n_div, 0);
+    for (m[0] = 1; n_mod--; )
+      m[0] *= 10;
+    return BigInt(1, m);
   }
 
   static void StripLeadingZeroElems(Magnitude* m) {
@@ -395,7 +414,8 @@ void PiDigits(int limit) {
       BigInt three_n_plus_a = n * kThree + a;
       t = three_n_plus_a / d;
       // u = three_n_plus_a % d + n;
-      u = three_n_plus_a - t * d + n;
+      BigInt td = t * d;
+      u = three_n_plus_a - td + n;
       if (d > u) {
         ns = ns * 10 + (int)t;
         if (++i % 5 == 0) {
@@ -408,7 +428,7 @@ void PiDigits(int limit) {
         }
         if (i >= limit)
           break;
-        a = (a - d * t) * BigInt::kTen;  // TODO use precomputed d * t
+        a = (a - td) * BigInt::kTen;  // TODO use precomputed d * t
         n = n * BigInt::kTen;
       }
     }

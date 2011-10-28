@@ -5,7 +5,7 @@
 # Contributed by Leo Osvald
 # ------------------------------------------------------------------
 
-spectralnorm_4 <- function(args) {
+spectralnorm_alt4 <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 100L
     options(digits=10)
 
@@ -43,4 +43,4 @@ spectralnorm_4 <- function(args) {
 }
 
 if (!exists("i_am_wrapper"))
-    spectralnorm_4(commandArgs(trailingOnly=TRUE))
+    spectralnorm_alt4(commandArgs(trailingOnly=TRUE))

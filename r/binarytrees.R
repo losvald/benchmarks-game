@@ -23,16 +23,16 @@ check <- function(tree)
 binarytrees <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 10L
 
-    min_depth <- 4
-    max_depth <- max(min_depth + 2, n)
-    stretch_depth <- max_depth + 1
+    min_depth <- 4L
+    max_depth <- max(min_depth + 2L, n)
+    stretch_depth <- max_depth + 1L
 
     cat(sep="", "stretch tree of depth ", stretch_depth, "\t check: ",
-        check(tree(0, stretch_depth)), "\n")
+        check(tree(0L, stretch_depth)), "\n")
 
-    long_lived_tree <- tree(0, max_depth)
+    long_lived_tree <- tree(0L, max_depth)
 
-    for (depth in seq(min_depth, max_depth, 2)) {
+    for (depth in seq(min_depth, max_depth, 2L)) {
         iterations <- as.integer(2^(max_depth - depth + min_depth))
         check_sum <- sum(sapply(
                 1:iterations,

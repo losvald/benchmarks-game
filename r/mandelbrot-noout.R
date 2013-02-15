@@ -8,7 +8,7 @@
 lim <- 2
 iter <- 50
 
-mandelbrot_noout <- function(args) {
+mandelbrot <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 200L
     n_mod8 = n %% 8L
     pads <- if (n_mod8) rep.int(0, 8L - n_mod8) else integer(0)
@@ -16,7 +16,6 @@ mandelbrot_noout <- function(args) {
 
     cat("P4\n")
     cat(n, n, "\n")
-    bin_con <- pipe("cat", "wb")
     for (y in 0:(n-1)) {
         c <- 2 * 0:(n-1) / n - 1.5 + 1i * (2 * y / n - 1)
         z <- rep(0+0i, n)
@@ -27,8 +26,9 @@ mandelbrot_noout <- function(args) {
         }
         bits <- as.integer(abs(z) <= lim)
         bytes <- as.raw(colSums(matrix(c(bits * p, pads), 8L)))
+	cat(bytes,"\n")
     }
 }
 
 if (!exists("i_am_wrapper"))
-    mandelbrot_noout(commandArgs(trailingOnly=TRUE))
+    mandelbrot(commandArgs(trailingOnly=TRUE))

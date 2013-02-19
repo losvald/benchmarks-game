@@ -24,7 +24,8 @@ sort_seq <- function(seq, len) {
     fs <- gen_freq(seq, len)
     seqs <- names(fs)
     inds <- order(-fs, seqs)
-    cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
+#    cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
+    cat(paste(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n"),
         "\n")
 }
 

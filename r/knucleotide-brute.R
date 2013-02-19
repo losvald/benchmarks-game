@@ -18,13 +18,13 @@ gen_freq <- function(seq, frame) {
     return(freqs)
 }
 
-gen_freq <- function(seq, frame) {
+gen_freq <- function(seq, frame) { # CTK: duplicate method
     frame <- frame - 1L
     ns <- nchar(seq) - frame
     freqs <- integer(0)
     for (i in 1:ns) {
         subseq = substr(seq, i, i + frame)
-        cnt <- attr(freqs, subseq)
+        cnt <- attr(freqs, subseq)  # CTK: adding exact=TRUE would massively improve performance
         if (is.null(cnt)) cnt <- 0L
         attr(freqs, subseq) <- cnt + 1L
     }
@@ -39,7 +39,8 @@ sort_seq <- function(seq, len) {
     seqs <- toupper(paste(names(attrs)))
     inds <- order(-fs, seqs)
     #cat(paste(seqs[inds], fs[inds], collapse="\n"), "\n")
-    cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
+    #cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
+    cat(paste(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n"),
         "\n")
 }
 

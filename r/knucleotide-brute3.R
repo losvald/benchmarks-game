@@ -21,6 +21,9 @@ gen_freq <- function(seq, frame) {
             cnt <- 0L
             # ensure O(N) resizing (instead of O(N^2))
             n <- n + 1L
+
+	    #CTK - this optimization has no (positive) effect because the expanded space does not
+            #CTK   have the names we will need; it has a detrimental effect, instead (even with GNU-R)
             freqs[[cap <- if (cap < n) 2L * cap else cap]] <- 0L
         }
         freqs[[subseq]] <- cnt + 1L
@@ -36,7 +39,8 @@ sort_seq <- function(seq, len) {
     seqs <- toupper(paste(names(attrs)))
     inds <- order(-fs, seqs)
     #cat(paste(seqs[inds], fs[inds], collapse="\n"), "\n")
-    cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
+#    cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
+    cat(paste(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n"),
         "\n")
 }
 

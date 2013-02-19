@@ -33,7 +33,8 @@ sort_seq <- function(seq, len) {
     seqs <- toupper(paste(names(attrs)))
     inds <- order(-fs, seqs)
     #cat(paste(seqs[inds], fs[inds], collapse="\n"), "\n")
-    cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
+    #cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
+    cat(paste(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n"),
         "\n")
 }
 

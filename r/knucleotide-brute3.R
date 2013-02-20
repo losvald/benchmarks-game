@@ -34,9 +34,17 @@ gen_freq <- function(seq, frame) {
 sort_seq <- function(seq, len) {
     cnt_map <- gen_freq(seq, len)
     #print(cnt_map)
-    attrs <- attributes(cnt_map)
-    fs <- unlist(attrs, use.names=FALSE)
-    seqs <- toupper(paste(names(attrs)))
+
+    #CTK needed these changes to make the benchmark work in GNU-R
+    #CTK attrs <- attributes(cnt_map)
+    #CTK fs <- unlist(attrs, use.names=FALSE)
+    #CTK seqs <- toupper(paste(names(attrs)))
+
+    #CTK --- added lines starting from here
+    fs <- cnt_map[cnt_map > 0]
+    seqs <- toupper(paste(names(fs)))
+    #CTK --- end of added lines
+
     inds <- order(-fs, seqs)
     #cat(paste(seqs[inds], fs[inds], collapse="\n"), "\n")
 #    cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
@@ -46,7 +54,9 @@ sort_seq <- function(seq, len) {
 
 find_seq <- function(seq, s) {
     cnt_map <- gen_freq(seq, nchar(s))
-    if (!is.null(cnt <- attr(cnt_map, s)))
+
+#CTK    if (!is.null(cnt <- attr(cnt_map, s)))
+    if (!is.na(cnt <- cnt_map[s]))
         return(cnt)
     return(0L)
 }

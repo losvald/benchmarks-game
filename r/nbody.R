@@ -98,10 +98,10 @@ nbody <- function(args) {
     n = if (length(args)) as.integer(args[[1]]) else 1000L
     options(digits=9)
     offset_momentum()
-    cat(energy(), "\n")
+    cat(energy(), "\n", sep="")
     for (i in 1:n)
         advance(0.01)
-    cat(energy(), "\n")
+    cat(energy(), "\n", sep="")
 }
 
 if (!exists("i_am_wrapper"))

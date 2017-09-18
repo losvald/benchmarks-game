@@ -26,7 +26,7 @@ pattern2 <- matrix(c(
         c("R", "(a|g)"),
         c("S", "(c|g)"),
         c("V", "(a|c|g)"),
-        c("W", "(a|t)"), 
+        c("W", "(a|t)"),
         c("Y", "(c|t)")
 ), ncol=2, byrow=TRUE)
 
@@ -46,10 +46,11 @@ regexdna <- function(args) {
     len2 <- nchar(str)
 
     for (pat in pattern1)
-        cat(pat, match_count(gregexpr(pat, str, useBytes=TRUE)), "\n")
+        cat(paste(pat, match_count(gregexpr(pat, str, useBytes=TRUE))),
+            "\n", sep="")
 
     for (i in 1:nrow(pattern2))
-        str <- gsub(pattern2[[i, 1]], pattern2[[i, 2]], str, perl=TRUE, 
+        str <- gsub(pattern2[[i, 1]], pattern2[[i, 2]], str, perl=TRUE,
                     useBytes=TRUE)
 
     cat("", len1, len2, nchar(str), sep="\n")

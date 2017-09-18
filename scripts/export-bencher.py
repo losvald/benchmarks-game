@@ -4,10 +4,9 @@ from __future__ import print_function
 
 import argparse
 import errno
-import os, os.path
+import os.path
 import re
 import shutil
-import subprocess
 import sys
 
 
@@ -19,13 +18,15 @@ def main(args=sys.argv):
         "-v", "--verbose", dest='v', action='count', default=0,
         help="increase output verbosity (can be repeated)")
     parser.add_argument(
+        "-n", "--dry-run", action='store_true',
+        help="do not make side effects, just print what would be done")
+    parser.add_argument(
         "bencher_root",
         help="root directory of the bencher")
     args = parser.parse_args(args[1:])
 
     global ARGS
     ARGS = args
-    v_print(1, "ARGS:", args)
 
     src_dir = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "..",
@@ -37,21 +38,26 @@ def main(args=sys.argv):
         stem = os.path.splitext(os.path.basename(src))[0]
         variants.setdefault(stem.partition("-")[0], []).append(src)
 
-    for prog, srcs in variants.items():
+    for prog, srcs in variants.items():  # be compatible with Python 3
         for idx, src in enumerate(srcs, 1):
-            dst_base = ".".join([prog, "%s-%d" % ("r", idx), "r"])
-            dst = os.path.join(args.bencher_root, "programs", prog, dst_base)
+            dst = ".".join([prog, "%s-%d" % ("r", idx), "r"])
+            dst_path = os.path.join(args.bencher_root, "programs", prog, dst)
             try:
-                os.mkdir(os.path.dirname(dst))
+                os.mkdir(os.path.dirname(dst_path))
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
-            print(src, idx, dst)
-            shutil.copy(os.path.join(src_dir, src), dst)
+            src_path = os.path.join(src_dir, src)
+            if ARGS.dry_run:
+                print("cp", src_path, dst_path)
+            else:
+                v_print(1, src, "->", dst)
+                shutil.copy(src_path, dst_path)
     return 0
 
 
 def v_print(min_verbosity, *args, **kwargs):
+    kwargs.setdefault('file', sys.stderr)
     if ARGS.v >= min_verbosity:
         print(*args, **kwargs)
 

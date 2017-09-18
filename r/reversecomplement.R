@@ -16,8 +16,7 @@ comp_map[codes] <- complements
 comp_map[tolower(codes)] <- complements
 
 reversecomplement <- function(args) {
-    in_filename = args[[1]]
-    f <- file(in_filename, "r")
+    f <- file(if (args[[1]] != "0") args[[1]] else "stdin", "r")
     while (length(s <- readLines(f, n=1, warn=FALSE))) {
         codes <- strsplit(s, split="")[[1]]
         if (codes[[1]] == '>')

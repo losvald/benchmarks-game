@@ -62,8 +62,7 @@ find_seq <- function(seq, s) {
 }
 
 knucleotide_brute3 <- function(args) {
-    in_filename = args[[1]]
-    f <- file(in_filename, "r")
+    f <- file(if (args[[1]] != "0") args[[1]] else "stdin", "r")
     while (length(line <- readLines(f, n=1, warn=FALSE))) {
         first_char <- substr(line, 1L, 1L)
         if (first_char == '>' || first_char == ';')

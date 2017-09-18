@@ -22,8 +22,7 @@ substr_fast <- function (x, start, stop) {
 }
 
 reversecomplement <- function(args) {
-    in_filename = args[[1]]
-    f <- file(in_filename, "r")
+    f <- file(if (args[[1]] != "0") args[[1]] else "stdin", "r")
     while (length(s <- readLines(f, n=1, warn=FALSE))) {
 	range <- seq(1, nchar(s))
         codes <- substr_fast(s, range, range)

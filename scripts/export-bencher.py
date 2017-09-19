@@ -4,6 +4,8 @@ from __future__ import print_function
 
 import argparse
 import errno
+import glob
+from itertools import chain
 import os.path
 import re
 import shutil
@@ -28,31 +30,41 @@ def main(args=sys.argv):
     global ARGS
     ARGS = args
 
-    src_dir = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), "..",
-        "r")
-    variants = {}
-    for src in os.listdir(src_dir):
-        if not src.endswith(".R"):
+    root_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+    ext_map = {"R": "r", "py": "python"}
+    name_map = {
+        'reversecomplement': 'revcomp',
+    }
+    lang_variants = {}
+    for src in chain(
+        glob.glob(root_dir + "/r/*"),
+        glob.iglob(root_dir + "/other-lang/**/*.*", recursive=True)
+    ):
+        stem, ext = os.path.splitext(os.path.basename(src))
+        ext = ext[1:]
+        if ext not in ext_map:
+            v_print(2, "skip:", src)
             continue
-        stem = os.path.splitext(os.path.basename(src))[0]
-        variants.setdefault(stem.partition("-")[0], []).append(src)
+        lang_variants.setdefault(ext_map[ext], {}).setdefault(
+            stem.partition("-")[0], []).append(src)
 
-    for prog, srcs in variants.items():  # be compatible with Python 3
-        for idx, src in enumerate(srcs, 1):
-            dst = ".".join([prog, "%s-%d" % ("r", idx), "r"])
-            dst_path = os.path.join(args.bencher_root, "programs", prog, dst)
-            try:
-                os.mkdir(os.path.dirname(dst_path))
-            except OSError as e:
-                if e.errno != errno.EEXIST:
-                    raise
-            src_path = os.path.join(src_dir, src)
-            if ARGS.dry_run:
-                print("cp", src_path, dst_path)
-            else:
-                v_print(1, src, "->", dst)
-                shutil.copy(src_path, dst_path)
+    for lang, variants in lang_variants.items():
+        for prog, srcs in variants.items():  # be compatible with Python 3
+            prog = name_map.get(prog, prog)
+            for idx, src_path in enumerate(srcs, 1):
+                dst = ".".join([prog, "%s-%d" % (lang, idx), lang])
+                dst_path = os.path.join(args.bencher_root, "programs",
+                                        prog, dst)
+                try:
+                    os.mkdir(os.path.dirname(dst_path))
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
+                if ARGS.dry_run:
+                    print("cp", src_path, dst_path)
+                else:
+                    v_print(1, os.path.basename(src_path), "->", dst)
+                    shutil.copy(src_path, dst_path)
     return 0
 
 

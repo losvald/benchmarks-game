@@ -31,7 +31,7 @@ def fannkuch(n: Int): Int = {
       val k2@ = (k+1) >> 1;
       i = 0;
       while (i < k2) {
-        val temp@ = perm(i); perm(i) = perm(k-i); perm(k-i) = temp;
+        val temp@ = perm(i); perm(i) = perm(k-i); perm(k-i) = temp + 0;
         i = i + 1
       };
       flipsCount = flipsCount + 1;
@@ -49,9 +49,9 @@ def fannkuch(n: Int): Int = {
       while (i < r) {
         val j@ = i + 1;
         perm1(i) = perm1(j);
-        i = j
+        i = j + 0 // FIXME work around inability of i to be a 2nd-class var
       };
-      perm1(r) = perm0;
+      perm1(r) = perm0 + 0;
       count(r) = count(r) - 1;
       brk = count(r) > 0;
       r = r + 1

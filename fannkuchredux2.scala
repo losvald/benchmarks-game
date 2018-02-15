@@ -9,15 +9,15 @@ def fannkuch(n: Int): Int = {
   val perm@ = new Array[Int](n);
   val perm1@ = new Array[Int](n);
   val count@ = new Array[Int](n);
-  var maxFlipsCount = 0;
-  var permCount = 0;
-  var checksum = 0;
+  var maxFlipsCount@ = 0;
+  var permCount@ = 0;
+  var checksum@ = 0;
 
-  var i = 0;
+  var i@ = 0;
   while (i < n) { perm1(i) = i; i = i + 1 };
 
-  var r = n;
-  var first = true;
+  var r@ = n;
+  var first@ = true;
   while (r != n || first) {
     first = false;
 
@@ -25,8 +25,8 @@ def fannkuch(n: Int): Int = {
 
     i = 0;
     while (i < n) { perm(i) = perm1(i); i = i + 1 };
-    var flipsCount = 0;
-    var k = perm(0) + 0; // workaround to store a copy as 1st-class value
+    var flipsCount@ = 0;
+    var k@ = perm(0) + 0; // workaround to store a copy as 1st-class value
     while (k != 0) {
       val k2@ = (k+1) >> 1;
       i = 0;
@@ -42,7 +42,7 @@ def fannkuch(n: Int): Int = {
       maxFlipsCount = flipsCount;
 
     // Use incremental change to generate another permutation
-    var brk = false;
+    var brk@ = false;
     while (r != n && !brk) {
       val perm0@ = perm1(0);
       i = 0;

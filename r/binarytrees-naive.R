@@ -33,7 +33,7 @@ binarytrees_naive <- function(args) {
         chk_sum <- 0L
         for (i in 1:iterations)
         chk_sum <- chk_sum + check(tree(i, depth)) + check(tree(-i, depth))
-        cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check ",
+        cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check: ",
             chk_sum, "\n")
     }
 

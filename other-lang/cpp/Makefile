@@ -4,7 +4,7 @@ clean: clean-pidigits
 PIDIGITS=pidigits
 PIDIGITS_SRC=$(PIDIGITS).cpp
 PIDIGITS_PROF_DIR=$(PIDIGITS)-prof
-PIDIGITS_TF = -pipe -O3 -march=native -mfpmath=sse -msse2 -fopenmp -mfpmath=sse -msse2
+PIDIGITS_TF = -std=c++14 -pipe -O3 -march=native -mfpmath=sse -msse2 -fopenmp -mfpmath=sse -msse2
 PIDIGITS_TF2=$(PIDIGITS_TF) -fomit-frame-pointer
 pidigits: $(PIDIGITS_SRC)
 	g++ -o $(PIDIGITS)-tweaked $(PIDIGITS_TF2) $(PIDIGITS_SRC)

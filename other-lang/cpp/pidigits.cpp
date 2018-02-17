@@ -361,7 +361,7 @@ private:
   }
 
   static inline std::size_t Log10Mag(const Magnitude& m) {
-    return kElemDigits * (m.size() - 1U) + 
+    return kElemDigits * (m.size() - 1U) +
       (std::size_t)Log10<double>(m[0]);
   }
 
@@ -393,51 +393,57 @@ const BigInt BigInt::kTen("10");
 // pidigits program
 
 void PiDigits(int limit) {
-  int i, k, ns, k1;
-
-  BigInt n, a, d, t, u;
+  const auto& kZero = BigInt::kZero;
+  const auto& kOne = BigInt::kOne;
+  const auto& kTen = BigInt::kTen;
   const BigInt kTwo = BigInt::kOne + BigInt::kOne;
   const BigInt kThree = kTwo + BigInt::kOne;
 
-  i = k = ns = 0;
-  k1 = 1;
-  n = d = BigInt::kOne;
-  a = t = u = BigInt::kZero;
-  while (true) {
-    ++k;
-    t = n * kTwo;
-    n = n * BigInt(k);
-    BigInt k2(k1 += 2);
-    a = (a + t) * k2;
-    d = d * k2;
-    if (a >= n) {
-      BigInt three_n_plus_a = n * kThree + a;
-      t = three_n_plus_a / d;
-      // u = three_n_plus_a % d + n;
-      BigInt td = t * d;
-      u = three_n_plus_a - td + n;
-      if (d > u) {
-        ns = ns * 10 + (int)t;
-        if (++i % 5 == 0) {
-          std::cout.fill('0');
-          std::cout.width(5);
-          std::cout << ns;
-          if (i % 2 == 0)
-            std::cout << "\t:" << i << std::endl;
-          ns = 0;
+  int k, ns;
+  k = ns = 0;
+
+  auto rec0 = [&](const auto& rec, int i0,
+                  const BigInt& n_div_k, const BigInt& d0,
+                  const BigInt& a0) -> void {
+    if (i0 < limit) {
+      ++k;
+      const auto& t0 = n_div_k * kTwo;
+      const auto& n = n_div_k * BigInt(k);
+      const BigInt k2(2*k + 1);
+      const auto& a = (a0 + t0) * k2;
+      const auto& d = d0 * k2;
+      if (a >= n) {
+        const auto& three_n_plus_a = n * kThree + a;
+        const auto& t = three_n_plus_a / d;
+        // u = three_n_plus_a % d + n;
+        const auto& td = t * d;
+        const auto& u = three_n_plus_a - td + n;
+        if (d > u) {
+          ns = ns * 10 + (int)t;
+          int i = i0 + 1;
+          if (i % 5 == 0) {
+            std::cout.fill('0');
+            std::cout.width(5);
+            std::cout << ns;
+            if (i % 2 == 0)
+              std::cout << "\t:" << i << std::endl;
+            ns = 0;
+          }
+          const auto& aNext = (a - td) * kTen;
+          const auto& n10 = n * kTen;
+          rec(rec, i, n10, d, aNext);
+        } else {
+          rec(rec, i0, n, d, a);
         }
-        if (i >= limit)
-          break;
-        a = (a - td) * BigInt::kTen;
-        n = n * BigInt::kTen;
-      }
+      } else
+        rec(rec, i0, n, d, a);
     }
-  }
+  };
+  rec0(rec0, 0, kOne, kOne, kZero);
 }
 
 int main(int argc, char **argv) {
-  int n = atoi(argv[1]); 
+  int n = atoi(argv[1]);
   PiDigits(n);
   return 0;
 }
-

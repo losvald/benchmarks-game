@@ -407,20 +407,20 @@ void PiDigits(int limit) {
                   const BigInt& a0) -> void {
     if (i0 < limit) {
       ++k;
-      { const auto& t0 = n_div_k * kTwo;
-        { const auto& n = n_div_k * BigInt(k);
-          { const BigInt k2(2*k + 1);
-            { const auto& a0t0sum = a0 + t0;
-              { const auto& a = a0t0sum * k2;
-                { const auto& d = d0 * k2;
+      withMul(n_div_k, kTwo, [&](const auto& t0) {
+        withMul(n_div_k, BigInt(k), [&](const auto& n) {
+          withBigInt(2*k + 1, [&](const auto& k2) {
+            withAdd(a0, t0, [&](const auto& a0t0sum) {
+              withMul(a0t0sum, k2, [&](const auto& a) {
+                withMul(d0, k2, [&](const auto& d) {
                   if (a >= n) {
-                    { const auto& nMul3 = n * kThree;
-                      { const auto& three_n_plus_a = nMul3 + a;
-                        { const auto& t = three_n_plus_a / d;
+                    withMul(n, kThree, [&](const auto& nMul3) {
+                      withAdd(nMul3, a, [&](const auto& three_n_plus_a) {
+                        withDiv(three_n_plus_a, d, [&](const auto& t) {
                           // u = three_n_plus_a % d + n;
-                          { const auto& td = t * d;
-                            { const auto& u_n = three_n_plus_a - td;
-                              { const auto& u = u_n + n;
+                          withMul(t, d, [&](const auto& td) {
+                            withSub(three_n_plus_a, td, [&](const auto& u_n) {
+                              withAdd(u_n, n, [&](const auto& u) {
                                 if (d > u) {
                                   ns = ns * 10 + (int)t;
                                   int i = i0 + 1;
@@ -432,34 +432,49 @@ void PiDigits(int limit) {
                                       std::cout << "\t:" << i << std::endl;
                                     ns = 0;
                                   }
-                                  { const auto& a_td = a - td;
-                                    { const auto& aNext = a_td * kTen;
-                                      { const auto& n10 = n * kTen;
+                                  withSub(a, td, [&](const auto& a_td) {
+                                    withMul(a_td, kTen, [&](const auto& aNext) {
+                                      withMul(n, kTen, [&](const auto& n10) {
                                         rec(rec, i, n10, d, aNext);
-                                      }
-                                    }
-                                  }
+                                      });
+                                    });
+                                  });
                                 } else {
                                   rec(rec, i0, n, d, a);
                                 }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
+                              });
+                            });
+                          });
+                        });
+                      });
+                    });
                   } else
                     rec(rec, i0, n, d, a);
-                }
-              }
-            }
-          }
-        }
-      }
+                });
+              });
+            });
+          });
+        });
+      });
     }
   };
   rec0(rec0, 0, kOne, kOne, kZero);
 }
+
+template<class F>
+void withBigInt(int n, F&& f) { f(BigInt(n)); }
+
+template<class F>
+void withAdd(const BigInt& lhs, const BigInt& rhs, F&& f) { f(lhs + rhs); }
+
+template<class F>
+void withSub(const BigInt& lhs, const BigInt& rhs, F&& f) { f(lhs - rhs); }
+
+template<class F>
+void withMul(const BigInt& lhs, const BigInt& rhs, F&& f) { f(lhs * rhs); }
+
+template<class F>
+void withDiv(const BigInt& lhs, const BigInt& rhs, F&& f) { f(lhs / rhs); }
 
 int main(int argc, char **argv) {
   int n = atoi(argv[1]);

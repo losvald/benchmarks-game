@@ -11,12 +11,6 @@
 #include <vector>
 #include <string>
 
-template<typename T>
-T Log10(const T& x) {
-  static const T kLog10 = log(10.);
-  return log(x) / kLog10;
-}
-
 typedef std::vector<int> Magnitude;
 
 /**
@@ -26,8 +20,8 @@ typedef std::vector<int> Magnitude;
  */
 class BigInt {
 public:
-  static const int kElemMax = 10000;
-  static const std::size_t kElemDigits = 4;
+  static const std::size_t kElemDigits = 14;
+  static const int kElemMax = 1 << kElemDigits;  // base
   static const BigInt kTen;
   static const BigInt kZero;
   static const BigInt kOne;
@@ -242,24 +236,26 @@ private:
 
   static Magnitude DivMag(const Magnitude& x_mag, const Magnitude& y_mag) {
     BigInt x(1, x_mag), y(1, y_mag);
-    const std::size_t x_mag_log10 = Log10Mag(x_mag);
-    const std::size_t y_mag_log10 = Log10Mag(y_mag);
-    const std::size_t lo_log10 = x_mag_log10 - y_mag_log10 -
-      (x_mag_log10 != y_mag_log10);
-    const std::size_t hi_log10 = x_mag_log10 - y_mag_log10 + 1;
-    BigInt lo = Pow10(lo_log10), hi;
+    const std::size_t x_mag_logBase = LogBaseMag(x_mag);
+    const std::size_t y_mag_logBase = LogBaseMag(y_mag);
+    const std::size_t lo_logBase = x_mag_logBase - y_mag_logBase -
+      (x_mag_logBase != y_mag_logBase);
+    const std::size_t hi_logBase = x_mag_logBase - y_mag_logBase + 1;
+    BigInt lo = PowBase(lo_logBase), hi;
 
-    // try pruning hi > 10 or lo <= 10
-    if (lo_log10 == 0 && hi_log10 > 1) {
-      const BigInt lo10 = lo * kTen;
-      if (lo10 * y > x)
-	hi = lo10;
+    // try pruning hi > base or lo <= base
+    if (lo_logBase == 0 && hi_logBase > 1) {
+      static BigInt kBase(kElemMax);
+      const BigInt loBase = lo * kBase;
+      if (loBase * y > x) {
+        hi = loBase;
+      }
       else {
-	lo = lo10;
-	hi = Pow10(hi_log10);
+        lo = loBase;
+        hi = PowBase(hi_logBase);
       }
     } else
-      hi = Pow10(hi_log10);
+      hi = PowBase(hi_logBase);
 
     while (lo < hi) {
       BigInt mid = (lo + hi + kOne).Div2();
@@ -287,17 +283,13 @@ private:
     return result;
   }
 
-  static inline std::size_t Log10Mag(const Magnitude& m) {
-    return kElemDigits * (m.size() - 1U) +
-      (std::size_t)Log10<double>(m[0]);
+  static inline std::size_t LogBaseMag(const Magnitude& m) {
+    return m.size() - 1U;
   }
 
-  static inline BigInt Pow10(std::size_t n) {
-    std::size_t n_div = n / kElemDigits;
-    std::size_t n_mod = n - n_div * kElemDigits;
-    Magnitude m(1 + n_div, 0);
-    for (m[0] = 1; n_mod--; )
-      m[0] *= 10;
+  static inline BigInt PowBase(std::size_t n) {
+    Magnitude m(1 + n, 0);
+    m[0] = 1;
     return BigInt(1, m);
   }
 

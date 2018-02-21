@@ -36,29 +36,6 @@ private:
   int sign;
 
 public:
-  BigInt(std::string s) {
-    if (s[0] == '-') {
-      sign = -1;
-      s.erase(0, 1);
-    } else
-      sign = 1;
-
-    StripLeadingZeros(&s);
-    std::size_t len = s.length();
-    if (len == 0) {
-      m = kZero.m;
-      sign = 0;
-      return ;
-    }
-
-    std::size_t mod = len % kElemDigits;
-    if (mod)
-      m.push_back(atoi(s.substr(0, mod).c_str()));
-    for (std::size_t i = mod; i < len; i += kElemDigits) {
-      m.push_back(atoi(s.substr(i, kElemDigits).c_str()));
-    }
-  }
-
   BigInt(int x) {
     if ((sign = CmpElem(x, 0)) < 0)
       x = -x;
@@ -103,12 +80,7 @@ public:
     if (x.sign == y.sign)
       return BigInt(x.sign, AddMag(x.m, y.m));
 
-    int c = CmpMag(x.m, y.m);
-    if (c == 0)
-      return kZero;
-    Magnitude result_mag = (c > 0 ? SubMag(x.m, y.m) : SubMag(y.m, x.m));
-    StripLeadingZeroElems(&result_mag);
-    return BigInt(SignProd(c, x.sign), result_mag);
+    return MagDiff(x, y);
   }
 
   friend BigInt operator-(const BigInt& x, const BigInt& y) {
@@ -118,17 +90,7 @@ public:
       return -y;
     if (x.sign != y.sign)
       return BigInt(x.sign, AddMag(x.m, y.m));
-
-    int c = CmpMag(x.m, y.m);
-    if (c == 0)
-      return kZero;
-    Magnitude result_mag = (c > 0 ? SubMag(x.m, y.m) : SubMag(y.m, x.m));
-    StripLeadingZeroElems(&result_mag);
-    return BigInt(SignProd(c, x.sign), result_mag);
-  }
-
-  friend BigInt operator-(const BigInt& x) {
-    return BigInt(-x.sign, x.m);
+    return MagDiff(x, y);
   }
 
   friend BigInt operator*(const BigInt& x, const BigInt& y) {
@@ -153,50 +115,18 @@ public:
     return BigInt(SignProd(x.sign, y.sign), DivMag(x.m, y.m));
   }
 
-  friend BigInt operator%(const BigInt& x, const BigInt& y) {
-    return x - x / y * y;
-  }
-
-  friend std::ostream& operator<<(std::ostream& os, const BigInt& x) {
-    if (x.sign == 0)
-      os << "0";
-    else {
-      if (x.sign < 0)
-        os << "-";
-      os << x.m[0];
-      for (std::size_t i = 1; i < x.m.size(); ++i) {
-        os.fill('0'); os.width(kElemDigits);
-        os << x.m[i];
-      }
-    }
-    return os;
-  }
-
   int Cmp(const BigInt& y) const {
-    if (sign == y.sign) {
-      if (sign == 1) return CmpMag(m, y.m);
-      if (sign == -1) return CmpMag(y.m, m);
-      return 0;
-    }
+    if (sign == 0) return 0;
+    if (sign == y.sign) return sign * CmpMag(m, y.m);
     return (sign > y.sign) - (sign < y.sign);
   }
 
   BigInt Div2() const {
-    if (sign == 0 || (m.size() == 1 && m[0] == 1L))
-      return kZero;
     return BigInt(sign, Div2Mag(m));
   }
 
 private:
   BigInt(int sign, const Magnitude& magnitude) : m(magnitude), sign(sign) { }
-
-  static void StripLeadingZeros(std::string* s) {
-    std::size_t ind = s->find_first_not_of("0");
-    if (ind == std::string::npos)
-      s->clear();
-    else
-      s->erase(s->begin(), s->begin() + ind);
-  }
 
   static inline int CmpElem(int x, int y) {
     return (x > y) - (x < y);
@@ -215,6 +145,15 @@ private:
       if (int c = CmpElem(x[i], y[i]))
         return c;
     return 0;
+  }
+
+  static BigInt MagDiff(const BigInt& x, const BigInt& y) {
+    int c = CmpMag(x.m, y.m);
+    if (c == 0)
+      return kZero;
+    Magnitude result_mag = (c > 0 ? SubMag(x.m, y.m) : SubMag(y.m, x.m));
+    StripLeadingZeroElems(&result_mag);
+    return BigInt(SignProd(c, x.sign), result_mag);
   }
 
   static Magnitude AddMag(const Magnitude& tx, const Magnitude& ty) {
@@ -249,7 +188,6 @@ private:
     if (carry) {
       Magnitude bigger(result.size() + 1);
       std::copy(result.begin(), result.end(), bigger.begin() + 1);
-      bigger[0] = 0x01;
       bigger[0] = 0x01;
       return bigger;
     }
@@ -311,9 +249,6 @@ private:
   }
 
   static Magnitude DivMag(const Magnitude& x_mag, const Magnitude& y_mag) {
-    if (y_mag == kOne.m)
-      return x_mag;
-
     BigInt x(1, x_mag), y(1, y_mag);
     const std::size_t x_mag_log10 = Log10Mag(x_mag);
     const std::size_t y_mag_log10 = Log10Mag(y_mag);
@@ -387,7 +322,7 @@ private:
 
 const BigInt BigInt::kZero(0L, Magnitude(0));
 const BigInt BigInt::kOne(1L, Magnitude(1, 1));
-const BigInt BigInt::kTen("10");
+const BigInt BigInt::kTen(10);
 
 
 // pidigits program

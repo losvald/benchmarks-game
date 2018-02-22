@@ -227,17 +227,9 @@ private:
     int x_start = x.size() - 1;
     int y_start = y.size() - 1;
     Magnitude c(x.size() + y.size());
-
-    long carry = 0;
-    for (int j = y_start, k = y_start + 1 + x_start; j >= 0; j--, k--) {
-      long product = y[j] * x[x_start] + carry;
-      c[k] = product % kElemMax;
-      carry = product / kElemMax;
-    }
-    c[x_start] = carry;
-
-    for (int i = x_start - 1; i >= 0; i--) {
-      carry = 0;
+    c.back() = 0;
+    for (int i = x_start; i >= 0; i--) {
+      long carry = 0;
       for (int j = y_start, k = y_start + 1 + i; j >= 0; j--, k--) {
         long product = y[j] * x[i] + c[k] + carry;
         c[k] = product % kElemMax;

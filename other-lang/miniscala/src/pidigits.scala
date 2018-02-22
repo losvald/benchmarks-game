@@ -1,6 +1,13 @@
 package pidigits
 
-object BigIntWrapper {
+class CPS[M <: lib.big.Big](protected val module: M) {
+  import module.{ I => BigInt, _ }
+  def BigInt(i: Int) = {
+    var ret: BigInt = uninit
+    fromInt(i) { ret = _ }
+    ret
+  }
+
   def apply(limit: Int, report5: Int => Unit) = {
     val (kZero, kOne, kTen) = (BigInt(0), BigInt(1), BigInt(10))
     val (kTwo, kThree) = (BigInt(2), BigInt(3))
@@ -51,11 +58,7 @@ object BigIntWrapper {
     rec(0, kOne, kOne, kZero)
   }
 
-  def withBigFromInt[R](n: Int)(f: BigInt => R) = f(BigInt(n))
-  def withAdd[R](lhs: BigInt, rhs: BigInt)(f: BigInt => R) = f(lhs + rhs)
-  def withSub[R](lhs: BigInt, rhs: BigInt)(f: BigInt => R) = f(lhs - rhs)
-  def withMul[R](lhs: BigInt, rhs: BigInt)(f: BigInt => R) = f(lhs * rhs)
-  def withDiv[R](lhs: BigInt, rhs: BigInt)(f: BigInt => R) = f(lhs / rhs)
+  def withBigFromInt[R](n: Int)(f: BigInt => R) = fromInt(n)(f)
 
   def main(args: Array[String]) {
     var i5 = 0
@@ -69,3 +72,5 @@ object BigIntWrapper {
     apply(args(1).toInt, report5)
   }
 }
+
+object BigIntWrapper extends CPS(lib.big.BigIntWrapper)

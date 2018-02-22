@@ -19,7 +19,7 @@ lazy val defaults = Seq(
   testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v"),
   Test / parallelExecution := true,
   Test / fork := true,
-  Test / javaOptions ++= Seq("-Xss32M", "-Xms128M"),
+  Test / javaOptions ++= Seq("-Xss48M", "-Xms128M"),
 )
 
 lazy val miniscalaBench = (project in file(".")).settings(

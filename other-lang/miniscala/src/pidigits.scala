@@ -74,3 +74,5 @@ class CPS[M <: lib.big.Big](protected val module: M) {
 }
 
 object BigIntWrapper extends CPS(lib.big.BigIntWrapper)
+
+object ArrayInt extends CPS(lib.big.ArrayInt)

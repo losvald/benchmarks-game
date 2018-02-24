@@ -28,16 +28,23 @@ trait Big {
   private[big] val baseLog: Int // for fast mult/div by: <</>> base
   private[big] lazy val base = 1 << baseLog
   private[big] lazy val baseMask = base - 1 // for fast modulus by: & baseMask
+
+  private[big] def repr(n: I): String
 }
 
 
-object ArrayInt extends Big {
+object ArrayInt extends BaselessArrayInt {
+  private[big] lazy val baseLog = 3
+}
+
+private[big] abstract class BaselessArrayInt extends Big {
   type I = Array[Int]
   private[big] val I = Array
 
   def uninit = I()
-  def fromInt[U](i: Int)(f: I => U): U = {
-    // FIXME handle negative numbers
+  def fromInt[U](i0: Int)(f: I => U): U = {
+    val sign = cmpElem(i0, 0)
+    val i = if (sign < 0) -i0 else i0
     var len = 0
     var n = i
     while (n != 0) {
@@ -52,16 +59,19 @@ object ArrayInt extends Big {
       ret(len) = n % base
       n /= base;
     }
+    if (sign < 0) ret(0) = -ret(0)
     f(ret)
   }
   def toInt(n: I): Int = {
-    var ret = 0
-    var i = 0
-    while (i < n.length) {
-      ret = ret * base + n(i)
-      i = i + 1
+    withSgn(n) { sgn =>
+      var ret = 0
+      var i = 0
+      while (i < n.length) {
+        ret = ret * base + n(i)
+        i = i + 1
+      }
+      sgn * ret
     }
-    ret
   }
 
   def withAdd[U](lhs: I, rhs: I)(f: I => U): U = {
@@ -80,10 +90,10 @@ object ArrayInt extends Big {
   def withMul[U](lhs: I, rhs: I)(f: I => U): U = {
     withSgn(lhs) { lhsSgn =>
       withSgn(rhs) { rhsSgn =>
-        withMulMag(lhs, rhs) { product =>
+        withMulMag(lhs, rhs) { withNoLeadingZeroes(_) { product =>
           sgnSet(product, sgnProd(lhsSgn, rhsSgn))
-          withNoLeadingZeroes(product)(f)
-        }
+          f(product)
+        } }
       }
     }
   }
@@ -97,7 +107,8 @@ object ArrayInt extends Big {
   def cmp(lhs: I, rhs: I): Int = {
     var ret = 0
     withSgn(lhs) { lhsSgn =>
-      withSgn(rhs) { rhsSgn =>
+      withSgn(rhs) { rhsSgn0 =>
+        val rhsSgn = if (lhs eq rhs) lhsSgn else rhsSgn0 // XXX work around mut.
         ret = if (lhsSgn == rhsSgn) lhsSgn * cmpMag(lhs, rhs)
         else cmpElem(lhsSgn, rhsSgn)
       }
@@ -105,11 +116,14 @@ object ArrayInt extends Big {
     ret
   }
 
+  private val hexDigitWidth = (baseLog + 3) / 4
+  private[big] def repr(n: I) = withSgn(n) { sgn =>
+    (if (sgn < 0) "-" else "") + n.map(s"%${hexDigitWidth}X" format _).mkString
+  }
+
   // implementation details
 
-  val baseLog = 3 // TODO increase
-
-  val one = {
+  private val one = {
     var ret: I = null
     fromInt(1) { ret = _ }
     ret
@@ -246,6 +260,7 @@ object ArrayInt extends Big {
         k = k - 1
         j = j - 1
       }
+      ret(i) = carry % base
       i = i - 1
     }
     f(ret)
@@ -321,17 +336,24 @@ object ArrayInt extends Big {
     f(ret)
   }
 
-  private def sgn(n: I): Int = {
+  private[big] def sgn(n: I): Int = {
     if (n.isEmpty || n(0) == 0) 0
     else if (n(0) > 0) +1
     else -1
   }
 
-  private def withSgn[U](n: I)(f: Int => U): U = {
+  // XXX encoding sign in array is _very fragile_ combined with CPS style e.g.:
+  //
+  //   withOp1(mut, rhs) { ret =>  // may mutate the sign of mut
+  //     ...
+  //     withOp2(lhs, mut) { ret2 => // ouch, what if lhs was negative?
+  //   }
+
+  private[big] def withSgn[U](n: I)(f: Int => U): U = {
     val sign = sgn(n)
     if (sign != 0) {
       val n0 = n(0)
-      n(0) = sign
+      n(0) = n0 * sign
       val ret = f(sign)
       n(0) = n0
       ret
@@ -340,15 +362,20 @@ object ArrayInt extends Big {
     }
   }
 
-  private def sgnSet(n: I, s: Int): Unit = {
+  private[big] def sgnSet(n: I, s: Int): Unit = {
     // TODO what if s == 0 and n non-empty?
     if (s == 0) n(0) = 0
-    else n(0) = sgnProd(s, n(0)) * n(0)
+    else if (n.nonEmpty) n(0) = sgnProd(s, cmpElem(n(0), 0)) * n(0)
   }
 }
 
 
-object ListInt extends Big {
+object ListInt extends BaselessListInt {
+  private[big] val baseLog = 3
+}
+
+private[big] abstract class BaselessListInt extends Big {
+
   type I = List[Int]
   private[big] val I = List
 
@@ -364,7 +391,7 @@ object ListInt extends Big {
     if (n.isEmpty) 0 else (toInt(n.tail) << baseLog) | n.head
   }
 
-  private[big] val baseLog = 3
+  private[big] def repr(n: I) = n.reverse.map("%X" format _).mkString(" ")
 
   private[big] def reverse[U](n: I)(f: I => U): U = {
     def rec(src: I, dst: I): U =
@@ -407,4 +434,6 @@ object BigIntWrapper extends Big {
   protected def cmp(lhs: I, rhs: I): Int = lhs.compare(rhs)
 
   private[big] val baseLog = 0 // dummy value
+
+  private[big] def repr(n: I) = ???
 }

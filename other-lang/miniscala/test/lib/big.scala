@@ -1,6 +1,8 @@
 package lib
 package big
 
+import scala.util.Random
+
 import org.junit.Assert._
 import org.junit.Test
 
@@ -15,11 +17,19 @@ class ToUtil[M <: Big](protected val module: M) { // self: Facade[M#I] =>
 
   def toBig(i: Int) = toNonCps(fromInt _)(i)
   def toBig(l: Long) = ???
+
+  def toBigPairs(ints: (Int, Int)*) = {
+    for ((lhsInt, rhsInt) <- ints) yield (toBig(lhsInt), toBig(rhsInt))
+  }
 }
 
 // ArrayInt tests
 
-class ArrayIntConversionTo extends ToUtil(ArrayInt) {
+object Base16ArrayInt extends BaselessArrayInt {
+  override lazy val baseLog = 4
+}
+
+class ArrayIntConversionTo extends ToUtil(Base16ArrayInt) {
   import module._
 
   @Test def test1Digit = {
@@ -27,8 +37,13 @@ class ArrayIntConversionTo extends ToUtil(ArrayInt) {
     assertArrayEquals(I(digit), toBig(digit))
   }
 
-  @Test def test2Digit = {
+  @Test def test2DigitPos = {
     assertArrayEquals(I(1, 0), toBig(1 << baseLog))
+    assertArrayEquals(I(0xA, 0x5), toBig(0xA5))
+  }
+
+  @Test def test2DigitNeg = {
+    assertArrayEquals(I(-1, 2), toBig(-(1 << baseLog | 2)))
   }
 
   @Test def test3Digit = {
@@ -48,7 +63,7 @@ class ArrayIntConversionTo extends ToUtil(ArrayInt) {
 }
 
 class ArrayIntConversionFrom {
-  import ArrayInt._
+  import Base16ArrayInt._
 
   @Test def testZero = {
     assertEquals(0, toInt(I(0)))
@@ -59,12 +74,16 @@ class ArrayIntConversionFrom {
     assertEquals(digit, toInt(I(digit)))
   }
 
-  @Test def test2Digit = {
+  @Test def test2DigitPos = {
     assertEquals(1 << baseLog, toInt(I(1, 0)))
+  }
+
+  @Test def test2DigitNeg = {
+    assertEquals(-(1 << baseLog | 2), toInt(I(-1, 2)))
   }
 }
 
-class ArrayIntConversionFromAndToInt extends ToUtil(ArrayInt) {
+class ArrayIntConversionFromAndToInt extends ToUtil(Base16ArrayInt) {
   import module._
 
   def reconvert(i: Int) = toInt(toBig(i))
@@ -80,6 +99,181 @@ class ArrayIntConversionFromAndToInt extends ToUtil(ArrayInt) {
   @Test def test1Digit = {
     assertEquals(base - 1, reconvert(base - 1))
   }
+
+  @Test def testNoTrailingZero = {
+    for (i <- Seq(0x1337, 0xDEA1))
+      assertEquals(i, reconvert(i))
+  }
+
+  @Test def testTrailingZeroes = {
+    for (i <- Seq(0x30, 0x4000))
+      assertEquals(i, reconvert(i))
+  }
+
+  @Test def testNegative = {
+    for (i <- Seq(-0x1, -0xA0FEED))
+      assertEquals(i, reconvert(i))
+  }
+}
+
+class ArrayIntSignedness {
+  import Base16ArrayInt._
+
+  @Test def testSgnPos = {
+    assertEquals(+1, sgn(I(4, 3, 2)))
+    assertEquals(+1, sgn(I(1)))
+  }
+
+  @Test def testSgnNeg = {
+    assertEquals(-1, sgn(I(-7, 6, 5)))
+    assertEquals(-1, sgn(I(-1)))
+  }
+
+  @Test def testSgnZeroEmpty = {
+    assertEquals(0, sgn(I()))
+  }
+
+  @Test def testSgnZeroNonEmpty = {
+    assertEquals(0, sgn(I(0)))
+  }
+
+  @Test def testWithSgnNeg = {
+    val n = I(-2, 3)
+    withSgn(n) { sgn =>
+      assertEquals(-1, sgn)
+      assertArrayEquals(I(2, 3), n)
+    }
+    assertArrayEquals(I(-2, 3), n)
+  }
+
+  @Test def testWithSgnPos = {
+    val n = I(5)
+    withSgn(n) { sgn =>
+      assertEquals(+1, sgn)
+      assertArrayEquals(I(5), n)
+    }
+    assertArrayEquals(I(5), n)
+  }
+
+  @Test def testSgnSetPosOnNeg = {
+    val n = I(-3, 2)
+    sgnSet(n, +1)
+    assertArrayEquals(I(3, 2), n)
+  }
+
+  @Test def testSgnSetPosOnPos = {
+    val n = I(2, 0)
+    sgnSet(n, +1)
+    assertArrayEquals(I(2, 0), n)
+  }
+
+  @Test def testSgnSetNegOnPos = {
+    val n = I(4, 5)
+    sgnSet(n, -1)
+    assertArrayEquals(I(-4, 5), n)
+  }
+
+  @Test def testSgnSetNegOnNeg = {
+    val n = I(-3, 1)
+    sgnSet(n, -1)
+    assertArrayEquals(I(-3, 1), n)
+  }
+}
+
+class ArrayIntMul extends ToUtil(Base16ArrayInt) {
+  import module._
+
+  @Test def testMul1ByManyDigitNoCarry = {
+    withMul(toBig(0x2), toBig(0x153)) { act =>
+      assertEquals(repr(toBig(0x2A6)), repr(act))
+    }
+  }
+
+  @Test def testMulManyBy1DigitNoCarry = {
+    withMul(toBig(0x503), toBig(3)) { act =>
+      assertEquals(repr(toBig(0xF09)), repr(act))
+    }
+  }
+
+  @Test def testMul3by2NoCarryEitherNeg = {
+    val exp = I(-6, 0xB, 7, 4)
+    withMul(toBig(-0x211), toBig(0x34)) { act =>
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+    withMul(toBig(0x211), toBig(-0x34)) { act =>
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+  }
+
+  @Test def testMulCarryNoExtraDigit = {
+    val exp = toBig(0xD6E2E2)
+    withMul(toBig(0xCAFE), toBig(0x10F)) { act =>
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+    withMul(toBig(0x10F), toBig(0xCAFE)) { act =>
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+  }
+
+  @Test def testMulWithCarryAndExtraDigitBothNeg = {
+    val exp = I(0xA, 6, 1, 4, 4, 9, 8, 3)
+    withMul(toBig(-0xDEAD), toBig(-0xBEEF)) { act =>
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+  }
+
+  @Test def testRandom = {
+    val rng = new Random(0)
+    for (itr <- 1 to 100) {
+      val lhs = rng.nextInt & 0x3FFF
+      val rhs = rng.nextInt & 0x3FFF
+      withMul(toBig(lhs), toBig(rhs)) { act =>
+        val exp = toBig(lhs * rhs)
+        assertArrayEquals(
+          f"$lhs%X * $rhs%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+      }
+    }
+  }
+}
+
+class Cmp extends ToUtil(Base16ArrayInt) {
+  import module._
+
+  @Test def testCmpBothPosOneSmaller = {
+    for ((lhs, rhs) <- toBigPairs(
+      (0x34, 0x56), (0x93, 0x142), (1, 0x10), (0, 0x100), (0x12321, 0x13211)
+    )) {
+      assertEquals(s"${repr(lhs)} ? ${repr(rhs)}", -1, cmp(lhs, rhs))
+      assertEquals(s"${repr(rhs)} ? ${repr(lhs)}", +1, cmp(rhs, lhs))
+    }
+  }
+
+  @Test def testCmpBothNegOneSmaller = {
+    for ((lhs, rhs) <- toBigPairs(
+      (-0x34, -0x56), (-0x93, -0x142), (-1, -0x10), (0, -0x100),
+      (-0x12321, -0x13211)
+    )) {
+      assertEquals(s"${repr(lhs)} ? ${repr(rhs)}", +1, cmp(lhs, rhs))
+      assertEquals(s"${repr(rhs)} ? ${repr(lhs)}", -1, cmp(rhs, lhs))
+    }
+  }
+
+  @Test def testCmpEitherNeg = {
+    for ((lhs, rhs) <- toBigPairs(
+      (-0x34, 0x56), (-0x142, 0x77), (-0x100, 0)
+    )) {
+      assertEquals(s"${repr(lhs)} ? ${repr(rhs)}", -1, cmp(lhs, rhs))
+      assertEquals(s"${repr(rhs)} ? ${repr(lhs)}", +1, cmp(rhs, lhs))
+    }
+  }
+
+  @Test def testCmpEqual = {
+    for (n <- Seq(0x56, -0x142, 0, 1, -0x10).map(toBig(_))) {
+      assertEquals(s"${repr(n)} (<= && >=)", true, (n <= n) && (n >= n))
+      assertEquals(s"${repr(n)} (cmp)", 0, cmp(n, n))
+      assertEquals(s"${repr(n)} (==)", true, n == n)
+    }
+  }
 }
 
 // ListInt tests
@@ -87,7 +281,11 @@ class ArrayIntConversionFromAndToInt extends ToUtil(ArrayInt) {
 // XXX figure out how to parametrize tests with a class in JUnit
 // (the inheritance does not work well with JUnit)
 
-class ListIntConversionTo extends ToUtil(ListInt) {
+object Base16ListInt extends BaselessListInt {
+  private[big] val baseLog = 4
+}
+
+class ListIntConversionTo extends ToUtil(Base16ListInt) {
   import module._
 
   @Test def test1Digit = {
@@ -97,6 +295,7 @@ class ListIntConversionTo extends ToUtil(ListInt) {
 
   @Test def test2Digit = {
     assertEquals(I(0, 1), toBig(1 << baseLog))
+    assertEquals(I(6, 5), toBig(0x56))
   }
 
   @Test def test3Digit = {
@@ -116,7 +315,7 @@ class ListIntConversionTo extends ToUtil(ListInt) {
 }
 
 class ListIntConversionFrom {
-  import ListInt._
+  import Base16ListInt._
 
   @Test def testZero = {
     assertEquals(0, toInt(I(0)))
@@ -132,7 +331,7 @@ class ListIntConversionFrom {
   }
 }
 
-class ListIntConversionFromAndToInt extends ToUtil(ListInt) {
+class ListIntConversionFromAndToInt extends ToUtil(Base16ListInt) {
   import module._
 
   def reconvert(i: Int) = toInt(toBig(i))

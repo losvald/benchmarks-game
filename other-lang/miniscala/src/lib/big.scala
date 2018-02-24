@@ -79,13 +79,39 @@ private[big] abstract class BaselessArrayInt extends Big {
       withSgn(rhs) { rhsSgn =>
         if (rhsSgn == 0) f(lhs)
         else if (lhsSgn == 0) f(rhs)
-        else if (lhsSgn == rhsSgn) withAddMag(lhs, rhs)(f)
-        else withMagDiff(lhs, rhs)(f)
+        else if (lhsSgn == rhsSgn) {
+          withAddMag(lhs, rhs) { sum =>
+            sgnSet(sum, lhsSgn)
+            f(sum)
+          }
+        }
+        else {
+          withMagDiff(lhs, rhs) { sum =>
+            sgnSet(sum, sgnProd(lhsSgn, cmp(lhs, rhs)))
+            f(sum)
+          }
+        }
       }
     }
   }
   def withSub[U](lhs: I, rhs: I)(f: I => U): U = {
-    withMagDiff(lhs, rhs)(f) // FIXME incorrect, but sufficient for pidigits
+    val lhsSgn = sgn(lhs)
+    val rhsSgn = sgn(rhs)
+    if (sgn(rhs) == 0) f(lhs)
+    else if (sgn(lhs) == 0) f(rhs)
+    else {
+      withSgn(lhs) { lhsSgn =>
+        withSgn(rhs) { rhsSgn =>
+          def k(retMag: I, sign: Int) = { sgnSet(retMag, sign); f(retMag) }
+          if (lhsSgn != rhsSgn) withAddMag(lhs, rhs) { retMag =>
+            k(retMag, lhsSgn)
+          }
+          else withMagDiff(lhs, rhs) { retMag =>
+            k(retMag, sgnProd(lhsSgn, cmp(lhs, rhs)))
+          }
+        }
+      }
+    }
   }
   def withMul[U](lhs: I, rhs: I)(f: I => U): U = {
     withSgn(lhs) { lhsSgn =>
@@ -150,18 +176,12 @@ private[big] abstract class BaselessArrayInt extends Big {
   }
 
   private def withMagDiff[U](lhs: I, rhs: I)(f: I => U): U = {
-    withSgn(lhs) { lhsSgn =>
-      val c = cmpMag(lhs, rhs)
-      if (c == 0) fromInt(0)(f)
-      else {
-        // (if (c > 0) withSubMag(lhs, rhs) else withSubMag(rhs, lhs) _) { t =>
-        def k(tmp: I) = withNoLeadingZeroes(tmp) { resultMag =>
-          sgnSet(resultMag, sgnProd(c, lhsSgn))
-          f(resultMag)
-        }
-        if (c > 0) withSubMag(lhs, rhs) { k(_) }
-        else withSubMag(rhs, lhs) { k(_) }
-      }
+    val c = cmpMag(lhs, rhs)
+    if (c == 0) fromInt(0)(f)
+    else {
+      def k(tmp: I) = withNoLeadingZeroes(tmp) { f(_) }
+      if (c > 0) withSubMag(lhs, rhs) { k(_) }
+      else withSubMag(rhs, lhs) { k(_) }
     }
   }
 
@@ -181,11 +201,11 @@ private[big] abstract class BaselessArrayInt extends Big {
         ret(lhsIdx) = sum % base
       }
 
-      // Copy remainder of longer number
+      // Copy remainder of longer number while carry propagation is required
       var carry = sum >= base
       while (lhsIdx > 0 && carry) {
         lhsIdx = lhsIdx - 1
-        ret(lhsIdx) = lhs(lhsIdx) + 1
+        ret(lhsIdx) = (lhs(lhsIdx) + 1) % base
         carry = (ret(lhsIdx) == 0)
       }
 
@@ -218,7 +238,7 @@ private[big] abstract class BaselessArrayInt extends Big {
     require(bigIdx >= lilIdx)
     var diff = 0
 
-        // Subtract common parts of both numbers
+    // Subtract common parts of both numbers
     while(lilIdx > 0) {
       bigIdx = bigIdx - 1
       lilIdx = lilIdx - 1
@@ -227,11 +247,11 @@ private[big] abstract class BaselessArrayInt extends Big {
     }
 
     // Subtract remainder of longer number while borrow propagates
-    var borrow = if (diff < 0) -1 else 0
-    while (bigIdx > 0 && borrow != 0) {
+    var borrow = (diff < 0)
+    while (bigIdx > 0 && borrow) {
       bigIdx = bigIdx - 1
-      ret(bigIdx) = big(bigIdx) - 1
-      borrow = (if (ret(bigIdx) == -1) 1 else 0)
+      ret(bigIdx) = (big(bigIdx) - 1 + base) % base
+      borrow = (big(bigIdx) == 0)
     }
 
     // Copy remainder of longer number

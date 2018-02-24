@@ -276,6 +276,84 @@ class Cmp extends ToUtil(Base16ArrayInt) {
   }
 }
 
+class ArrayIntAddAndSub extends ToUtil(Base16ArrayInt) {
+  import module._
+
+  @Test def testAdd1DigitCarryExtraDigit = {
+    withAdd(I(0xA), I(0xB)) { act =>
+      val exp = toBig(0x15)
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+  }
+
+  @Test def testAddUnevenDigitCarryNoExtraDigit = {
+    val exp = toBig(0x5920)
+    withAdd(toBig(0x572B), toBig(0x1F5)) { act =>
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+    withAdd(toBig(0x1F5), toBig(0x572B)) { act =>
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+  }
+
+  @Test def testSub1BorrowFromZero = {
+    withSub(toBig(0x80800), I(1)) { act =>
+      val exp = toBig(0x807FF)
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+  }
+
+  @Test def testSubSmallerPosLoseTwoDigits = {
+    withSub(toBig(0x5678), toBig(0x55AB)) { act =>
+      val exp = toBig(0xCD)
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+  }
+
+  @Test def testAddEitherNegLoseTwoDigits = {
+    val exp = toBig(0xCD)
+    withAdd(toBig(0x1234), toBig(-0x1167)) { act =>
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+    withAdd(toBig(-0x1167), toBig(0x1234)) { act =>
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+  }
+
+  @Test def testRandom = {
+    val r = new Random(1)
+    for (itr <- 1 to 100) {
+      val lhs = r.nextInt & 0x3FFFFFF
+      val rhs = r.nextInt & 0x3FFFFFF
+      withAdd(toBig(lhs), toBig(rhs)) { act =>
+        val exp = toBig(lhs + rhs)
+        assertArrayEquals(
+          f"$lhs%X + $rhs%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
+          exp, act)
+      }
+      withSub(toBig(-lhs), toBig(-rhs)) { act =>
+        val exp = toBig(-lhs - -rhs)
+        assertArrayEquals(
+          f"-$lhs%X - -$rhs%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
+          exp, act)
+      }
+      withAdd(toBig(-lhs), toBig(rhs)) { act =>
+        val exp = toBig(-lhs + rhs)
+        assertArrayEquals(
+          f"-$lhs%X + $rhs%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
+          exp, act)
+      }
+      withSub(toBig(lhs), toBig(rhs)) { act =>
+        val exp = toBig(lhs - rhs)
+        assertArrayEquals(
+          f"$lhs%X - $rhs%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
+          exp, act)
+      }
+    }
+  }
+}
+
+
 // ListInt tests
 
 // XXX figure out how to parametrize tests with a class in JUnit

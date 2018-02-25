@@ -48,7 +48,7 @@ private[big] abstract class BaselessArrayInt extends Big {
     var len = 0
     var n = i
     while (n != 0) {
-      n /= base
+      n >>= baseLog
       len += 1
     }
 
@@ -56,8 +56,8 @@ private[big] abstract class BaselessArrayInt extends Big {
     n = i
     while (n != 0) {
       len = len - 1
-      ret(len) = n % base
-      n /= base;
+      ret(len) = n & baseMask
+      n >>= baseLog;
     }
     if (sign < 0) ret(0) = -ret(0)
     f(ret)
@@ -67,7 +67,7 @@ private[big] abstract class BaselessArrayInt extends Big {
       var ret = 0
       var i = 0
       while (i < n.length) {
-        ret = ret * base + n(i)
+        ret = (ret << baseLog) + n(i)
         i = i + 1
       }
       sgn * ret
@@ -197,15 +197,15 @@ private[big] abstract class BaselessArrayInt extends Big {
       while (rhsIdx > 0) {
         lhsIdx = lhsIdx - 1
         rhsIdx = rhsIdx - 1
-        sum = lhs(lhsIdx) + rhs(rhsIdx) + sum / base
-        ret(lhsIdx) = sum % base
+        sum = lhs(lhsIdx) + rhs(rhsIdx) + (sum >> baseLog)
+        ret(lhsIdx) = sum & baseMask
       }
 
       // Copy remainder of longer number while carry propagation is required
       var carry = sum >= base
       while (lhsIdx > 0 && carry) {
         lhsIdx = lhsIdx - 1
-        ret(lhsIdx) = (lhs(lhsIdx) + 1) % base
+        ret(lhsIdx) = (lhs(lhsIdx) + 1) & baseMask
         carry = (ret(lhsIdx) == 0)
       }
 
@@ -243,14 +243,14 @@ private[big] abstract class BaselessArrayInt extends Big {
       bigIdx = bigIdx - 1
       lilIdx = lilIdx - 1
       diff = big(bigIdx) - lil(lilIdx) + (if (diff < 0) -1 else 0)
-      ret(bigIdx) = (diff + base) % base
+      ret(bigIdx) = (diff + base) & baseMask
     }
 
     // Subtract remainder of longer number while borrow propagates
     var borrow = (diff < 0)
     while (bigIdx > 0 && borrow) {
       bigIdx = bigIdx - 1
-      ret(bigIdx) = (big(bigIdx) - 1 + base) % base
+      ret(bigIdx) = (big(bigIdx) + baseMask) & baseMask
       borrow = (big(bigIdx) == 0)
     }
 
@@ -275,12 +275,12 @@ private[big] abstract class BaselessArrayInt extends Big {
       var k = rhsIdx + 1 + i
       while (j >= 0) {
         val product = lhs(i) * rhs(j) + ret(k) + carry
-        ret(k) = product % base
-        carry = product / base
+        ret(k) = product & baseMask
+        carry = product >> baseLog
         k = k - 1
         j = j - 1
       }
-      ret(i) = carry % base
+      ret(i) = carry & baseMask
       i = i - 1
     }
     f(ret)
@@ -327,9 +327,9 @@ private[big] abstract class BaselessArrayInt extends Big {
       val ret = new I(lhsEnd - lhsBeg)
       var lhsIdx = lhsBeg
       while (lhsIdx < lhsEnd) {
-        val d = lhs(lhsIdx) + base * borrow
+        val d = lhs(lhsIdx) + (borrow << baseLog)
         ret(lhsIdx - lhsBeg) = d / 2
-        borrow = d % 2
+        borrow = d & 1
         lhsIdx = lhsIdx + 1
       }
       f(ret)

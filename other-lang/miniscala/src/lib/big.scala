@@ -292,28 +292,30 @@ private[big] abstract class BaselessArrayInt extends Big {
     val loLog = lhsLog - rhsLog - (if (lhsLog != rhsLog) 1 else 0)
     val hiLog = lhsLog - rhsLog + 1
 
-    // TODO(hi-prio) rewrite in CPS style
-
-    var lo = uninit; withPowBase(loLog) { lo = _ }
-
     // TODO(lo-prio) try pruning hi > base or lo <= base
-    var hi = uninit; withPowBase(hiLog) { hi = _ }
 
-    while (cmp(lo, hi) < 0) {
-      var mid = uninit
-      withAddMag(hi, one) { hiPlus1 =>
-        withAddMag(lo, hiPlus1) {
-          withDiv2Mag(_) { mid = _ }
+    def binarySearch(lo: I, hi: I): U = {
+      if (cmp(lo, hi) < 0) {
+        withAddMag(hi, one) { hiPlus1 =>
+          withAddMag(lo, hiPlus1) {
+            withDiv2Mag(_) { mid =>
+              withMul(mid, rhs) { product =>
+                if (cmp(product, lhs) <= 0)
+                  binarySearch(mid, hi)
+                else withSubMag(mid, one) { hiNext =>
+                  binarySearch(lo, hiNext)
+                }
+              }
+            }
+          }
         }
-      }
-
-      withMul(mid, rhs) { product =>
-        if (cmp(product, lhs) <= 0) lo = mid
-        else withSubMag(mid, one) { hi = _ }
+      } else f(lo)
+    }
+    withPowBase(loLog) { lo =>
+      withPowBase(hiLog) { hi =>
+        binarySearch(lo, hi)
       }
     }
-
-    f(lo)
   }
 
   private[big] def withDiv2Mag[U](lhs: I)(f: I => U): U = {

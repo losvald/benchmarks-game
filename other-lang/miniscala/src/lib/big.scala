@@ -34,7 +34,7 @@ trait Big {
 
 
 object ArrayInt extends BaselessArrayInt {
-  private[big] lazy val baseLog = 3
+  private[big] lazy val baseLog = 15 // ensure non-overflow in multiplication
 }
 
 private[big] abstract class BaselessArrayInt extends Big {
@@ -393,7 +393,7 @@ private[big] abstract class BaselessArrayInt extends Big {
 
 
 object ListInt extends BaselessListInt {
-  private[big] val baseLog = 3
+  private[big] val baseLog = 15
 }
 
 private[big] abstract class BaselessListInt extends Big {

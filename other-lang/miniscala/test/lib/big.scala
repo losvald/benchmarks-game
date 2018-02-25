@@ -9,9 +9,9 @@ import org.junit.Test
 class ToUtil[M <: Big](protected val module: M) { // self: Facade[M#I] =>
   import module._
 
-  def toNonCps[U, @specialized(Int) T](fn: T => (I => Any) => U)(src: T): I = {
+  def toNonCps[U, @specialized(Int) T](fn: (T, I => Any) => U)(src: T): I = {
     var ret: I = uninit
-    fn(src) { ret = _ }
+    fn(src, { ret = _ })
     ret
   }
 
@@ -139,19 +139,19 @@ class ArrayIntSignedness {
 
   @Test def testWithSgnNeg = {
     val n = I(-2, 3)
-    withSgn(n) { sgn =>
+    withSgn(n, { sgn =>
       assertEquals(-1, sgn)
       assertArrayEquals(I(2, 3), n)
-    }
+    })
     assertArrayEquals(I(-2, 3), n)
   }
 
   @Test def testWithSgnPos = {
     val n = I(5)
-    withSgn(n) { sgn =>
+    withSgn(n, { sgn =>
       assertEquals(+1, sgn)
       assertArrayEquals(I(5), n)
-    }
+    })
     assertArrayEquals(I(5), n)
   }
 
@@ -184,42 +184,42 @@ class ArrayIntMul extends ToUtil(Base16ArrayInt) {
   import module._
 
   @Test def testMul1ByManyDigitNoCarry = {
-    withMul(toBig(0x2), toBig(0x153)) { act =>
+    withMul(toBig(0x2), toBig(0x153), { act =>
       assertEquals(repr(toBig(0x2A6)), repr(act))
-    }
+    })
   }
 
   @Test def testMulManyBy1DigitNoCarry = {
-    withMul(toBig(0x503), toBig(3)) { act =>
+    withMul(toBig(0x503), toBig(3), { act =>
       assertEquals(repr(toBig(0xF09)), repr(act))
-    }
+    })
   }
 
   @Test def testMul3by2NoCarryEitherNeg = {
     val exp = I(-6, 0xB, 7, 4)
-    withMul(toBig(-0x211), toBig(0x34)) { act =>
+    withMul(toBig(-0x211), toBig(0x34), { act =>
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
-    withMul(toBig(0x211), toBig(-0x34)) { act =>
+    })
+    withMul(toBig(0x211), toBig(-0x34), { act =>
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
+    })
   }
 
   @Test def testMulCarryNoExtraDigit = {
     val exp = toBig(0xD6E2E2)
-    withMul(toBig(0xCAFE), toBig(0x10F)) { act =>
+    withMul(toBig(0xCAFE), toBig(0x10F), { act =>
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
-    withMul(toBig(0x10F), toBig(0xCAFE)) { act =>
+    })
+    withMul(toBig(0x10F), toBig(0xCAFE), { act =>
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
+    })
   }
 
   @Test def testMulWithCarryAndExtraDigitBothNeg = {
     val exp = I(0xA, 6, 1, 4, 4, 9, 8, 3)
-    withMul(toBig(-0xDEAD), toBig(-0xBEEF)) { act =>
+    withMul(toBig(-0xDEAD), toBig(-0xBEEF), { act =>
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
+    })
   }
 
   @Test def testRandom = {
@@ -227,11 +227,11 @@ class ArrayIntMul extends ToUtil(Base16ArrayInt) {
     for (itr <- 1 to 100) {
       val lhs = rng.nextInt & 0x3FFF
       val rhs = rng.nextInt & 0x3FFF
-      withMul(toBig(lhs), toBig(rhs)) { act =>
+      withMul(toBig(lhs), toBig(rhs), { act =>
         val exp = toBig(lhs * rhs)
         assertArrayEquals(
           f"$lhs%X * $rhs%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-      }
+      })
     }
   }
 }
@@ -280,44 +280,44 @@ class ArrayIntAddAndSub extends ToUtil(Base16ArrayInt) {
   import module._
 
   @Test def testAdd1DigitCarryExtraDigit = {
-    withAdd(I(0xA), I(0xB)) { act =>
+    withAdd(I(0xA), I(0xB), { act =>
       val exp = toBig(0x15)
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
+    })
   }
 
   @Test def testAddUnevenDigitCarryNoExtraDigit = {
     val exp = toBig(0x5920)
-    withAdd(toBig(0x572B), toBig(0x1F5)) { act =>
+    withAdd(toBig(0x572B), toBig(0x1F5), { act =>
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
-    withAdd(toBig(0x1F5), toBig(0x572B)) { act =>
+    })
+    withAdd(toBig(0x1F5), toBig(0x572B), { act =>
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
+    })
   }
 
   @Test def testSub1BorrowFromZero = {
-    withSub(toBig(0x80800), I(1)) { act =>
+    withSub(toBig(0x80800), I(1), { act =>
       val exp = toBig(0x807FF)
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
+    })
   }
 
   @Test def testSubSmallerPosLoseTwoDigits = {
-    withSub(toBig(0x5678), toBig(0x55AB)) { act =>
+    withSub(toBig(0x5678), toBig(0x55AB), { act =>
       val exp = toBig(0xCD)
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
+    })
   }
 
   @Test def testAddEitherNegLoseTwoDigits = {
     val exp = toBig(0xCD)
-    withAdd(toBig(0x1234), toBig(-0x1167)) { act =>
+    withAdd(toBig(0x1234), toBig(-0x1167), { act =>
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
-    withAdd(toBig(-0x1167), toBig(0x1234)) { act =>
+    })
+    withAdd(toBig(-0x1167), toBig(0x1234), { act =>
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
+    })
   }
 
   @Test def testRandom = {
@@ -325,30 +325,30 @@ class ArrayIntAddAndSub extends ToUtil(Base16ArrayInt) {
     for (itr <- 1 to 100) {
       val lhs = r.nextInt & 0x3FFFFFF
       val rhs = r.nextInt & 0x3FFFFFF
-      withAdd(toBig(lhs), toBig(rhs)) { act =>
+      withAdd(toBig(lhs), toBig(rhs), { act =>
         val exp = toBig(lhs + rhs)
         assertArrayEquals(
           f"$lhs%X + $rhs%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
           exp, act)
-      }
-      withSub(toBig(-lhs), toBig(-rhs)) { act =>
+      })
+      withSub(toBig(-lhs), toBig(-rhs), { act =>
         val exp = toBig(-lhs - -rhs)
         assertArrayEquals(
           f"-$lhs%X - -$rhs%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
           exp, act)
-      }
-      withAdd(toBig(-lhs), toBig(rhs)) { act =>
+      })
+      withAdd(toBig(-lhs), toBig(rhs), { act =>
         val exp = toBig(-lhs + rhs)
         assertArrayEquals(
           f"-$lhs%X + $rhs%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
           exp, act)
-      }
-      withSub(toBig(lhs), toBig(rhs)) { act =>
+      })
+      withSub(toBig(lhs), toBig(rhs), { act =>
         val exp = toBig(lhs - rhs)
         assertArrayEquals(
           f"$lhs%X - $rhs%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
           exp, act)
-      }
+      })
     }
   }
 }
@@ -358,7 +358,7 @@ class ArrayIntDiv extends ToUtil(Base16ArrayInt) {
 
   @Test def test1DigitMagDiv2 = {
     for (i <- Seq(1, 3, 4, 0xA, 0xF))
-      withDiv2Mag(I(i)) { act => assertArrayEquals(I(i / 2), act) }
+      withDiv2Mag(I(i), { act => assertArrayEquals(I(i / 2), act) })
   }
 
   @Test def testManyDigitMagDiv2 = {
@@ -366,17 +366,17 @@ class ArrayIntDiv extends ToUtil(Base16ArrayInt) {
       half <- Seq(0xDEAD, 0xBEEF, 0x1002); exp = toBig(half)
       n <- Seq(2*half, 2*half + 1).map(toBig(_))
     } {
-      withDiv2Mag(n) { act =>
+      withDiv2Mag(n, { act =>
         assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-      }
+      })
     }
   }
 
   @Test def testMagDiv2Borrow = {
-    withDiv2Mag(toBig(0xBBBC)) { act =>
+    withDiv2Mag(toBig(0xBBBC), { act =>
       val exp = toBig(0x5DDE)
       assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
-    }
+    })
   }
 
   @Test def testManyDigitMagDiv1Digit = {
@@ -385,11 +385,11 @@ class ArrayIntDiv extends ToUtil(Base16ArrayInt) {
       factor <- Seq(0xDEAD, 0xBEEF, 0x1002); exp = toBig(factor)
       i = factor * digit
     } {
-      withDivMag(toBig(i), I(digit)) { act =>
+      withDivMag(toBig(i), I(digit), { act =>
         assertArrayEquals(
           f"$i%X/$digit%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
           exp, act)
-      }
+      })
     }
   }
 
@@ -398,12 +398,12 @@ class ArrayIntDiv extends ToUtil(Base16ArrayInt) {
       (0x102FB, 0x23), (0xCAFE100, 0x807), (0x101, 0x81), (0x3010CAB, 0x2345),
       (0x3098, 0x3100), (0x344, 0x344)
     )) {
-      withDiv(lhs, rhs) { act =>
+      withDiv(lhs, rhs, { act =>
         val exp = toBig(toInt(lhs) / toInt(rhs))
         assertArrayEquals(
           s"${repr(lhs)}/${repr(rhs)}\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
           exp, act)
-      }
+      })
     }
   }
 
@@ -414,11 +414,11 @@ class ArrayIntDiv extends ToUtil(Base16ArrayInt) {
       val rhsInt = r.nextInt(lhsInt) + 1
       val (lhs, rhs) = (toBig(lhsInt), toBig(rhsInt))
       val exp = toBig(lhsInt / rhsInt)
-      withDiv(lhs, rhs) { act =>
+      withDiv(lhs, rhs, { act =>
         assertArrayEquals(
           s"${repr(lhs)}/${repr(rhs)}\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
           exp, act)
-      }
+      })
     }
   }
 }

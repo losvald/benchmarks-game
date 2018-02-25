@@ -4,7 +4,7 @@ class CPS[M <: lib.big.Big](protected val module: M) {
   import module.{ I => BigInt, _ }
   def BigInt(i: Int) = {
     var ret: BigInt = uninit
-    fromInt(i) { ret = _ }
+    fromInt(i, { ret = _ })
     ret
   }
 
@@ -18,21 +18,21 @@ class CPS[M <: lib.big.Big](protected val module: M) {
     def rec(i: Int, nDivK: BigInt, d0: BigInt, a0: BigInt): Unit = {
       if (i < limit) {
         k = k + 1;
-        withMul(nDivK, kTwo) { t0 =>
-          withBigFromInt(k) { kBig =>
-            withMul(nDivK, kBig) { n =>
-              withBigFromInt(2*k + 1) { k2 =>
-                withAdd(a0, t0) { a0t0sum =>
-                  withMul(a0t0sum, k2) { a =>
-                    withMul(d0, k2) { d =>
+        withMul(nDivK, kTwo, { t0 =>
+          withBigFromInt(k, { kBig =>
+            withMul(nDivK, kBig, { n =>
+              withBigFromInt(2*k + 1, { k2 =>
+                withAdd(a0, t0, { a0t0sum =>
+                  withMul(a0t0sum, k2, { a =>
+                    withMul(d0, k2, { d =>
                       if (a >= n) {
-                        withMul(n, kThree) { nMul3 =>
-                          withAdd(nMul3, a) { three_n_plus_a =>
-                            withDiv(three_n_plus_a, d) { t =>
+                        withMul(n, kThree, { nMul3 =>
+                          withAdd(nMul3, a, { three_n_plus_a =>
+                            withDiv(three_n_plus_a, d, { t =>
                               // u = three_n_plus_a % d + n;
-                              withMul(t, d) { td =>
-                                withSub(three_n_plus_a, td) { u_n =>
-                                  withAdd(u_n, n) { u =>
+                              withMul(t, d, { td =>
+                                withSub(three_n_plus_a, td, { u_n =>
+                                  withAdd(u_n, n, { u =>
                                     if (d > u) {
                                       ns = ns * 10 + t.intValue
                                       val iNext = i + 1;
@@ -40,25 +40,25 @@ class CPS[M <: lib.big.Big](protected val module: M) {
                                         report5(ns)
                                         ns = 0
                                       }
-                                      withSub(a, td) { a_td =>
-                                        withMul(a_td, kTen) { aNext =>
-                                          withMul(n, kTen) { n10 =>
+                                      withSub(a, td, { a_td =>
+                                        withMul(a_td, kTen, { aNext =>
+                                          withMul(n, kTen, { n10 =>
                                             rec(iNext, n10, d, aNext)
-                                      } } }
+                                      }) }) })
                                     } else
                                       rec(i, n, d, a)
-                              } } }
-                        } } }
+                              }) }) })
+                        }) }) })
                       } else
                         rec(i, n, d, a)
-              } } } }
-        } } }
+              }) }) }) })
+        }) }) })
       }
     }
     rec(0, kOne, kOne, kZero)
   }
 
-  def withBigFromInt[R](n: Int)(f: BigInt => R) = fromInt(n)(f)
+  def withBigFromInt[R](n: Int, f: BigInt => R) = fromInt(n, f)
 
   def main(args: Array[String]) {
     var i5 = 0

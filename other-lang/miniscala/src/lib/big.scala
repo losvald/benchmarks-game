@@ -41,7 +41,7 @@ private[big] abstract class BaselessArrayInt extends Big {
   type I = Array[Int]
   private[big] val I = Array
 
-  def uninit = I()
+  def uninit() = new I(0);
   def fromInt[U](i0: Int, f: I => U): U = {
     val sign = cmpElem(i0, 0)
     val i = if (sign < 0) -i0 else i0
@@ -63,7 +63,7 @@ private[big] abstract class BaselessArrayInt extends Big {
     f(ret)
   }
   def toInt(n: I): Int = {
-    withSgn(n, { sgn =>
+    withSgn(n, { (sgn: Int) =>
       var ret = 0
       var i = 0
       while (i < n.length) {
@@ -75,18 +75,18 @@ private[big] abstract class BaselessArrayInt extends Big {
   }
 
   def withAdd[U](lhs: I, rhs: I, f: I => U): U = {
-    withSgn(lhs, { lhsSgn =>
-      withSgn(rhs, { rhsSgn =>
+    withSgn(lhs, { (lhsSgn: Int) =>
+      withSgn(rhs, { (rhsSgn: Int) =>
         if (rhsSgn == 0) f(lhs)
         else if (lhsSgn == 0) f(rhs)
         else if (lhsSgn == rhsSgn) {
-          withAddMag(lhs, rhs, { sum =>
+          withAddMag(lhs, rhs, { (sum: I) =>
             sgnSet(sum, lhsSgn)
             f(sum)
           })
         }
         else {
-          withMagDiff(lhs, rhs, { sum =>
+          withMagDiff(lhs, rhs, { (sum: I) =>
             sgnSet(sum, sgnProd(lhsSgn, cmp(lhs, rhs)))
             f(sum)
           })
@@ -100,13 +100,13 @@ private[big] abstract class BaselessArrayInt extends Big {
     if (sgn(rhs) == 0) f(lhs)
     else if (sgn(lhs) == 0) f(rhs)
     else {
-      withSgn(lhs, { lhsSgn =>
-        withSgn(rhs, { rhsSgn =>
+      withSgn(lhs, { (lhsSgn: Int) =>
+        withSgn(rhs, { (rhsSgn: Int) =>
           def k(retMag: I, sign: Int) = { sgnSet(retMag, sign); f(retMag) }
-          if (lhsSgn != rhsSgn) withAddMag(lhs, rhs, { retMag =>
+          if (lhsSgn != rhsSgn) withAddMag(lhs, rhs, { (retMag: I) =>
             k(retMag, lhsSgn)
           })
-          else withMagDiff(lhs, rhs, { retMag =>
+          else withMagDiff(lhs, rhs, { (retMag: I) =>
             k(retMag, sgnProd(lhsSgn, cmp(lhs, rhs)))
           })
         })
@@ -114,12 +114,14 @@ private[big] abstract class BaselessArrayInt extends Big {
     }
   }
   def withMul[U](lhs: I, rhs: I, f: I => U): U = {
-    withSgn(lhs, { lhsSgn =>
-      withSgn(rhs, { rhsSgn =>
-        withMulMag(lhs, rhs, { withNoLeadingZeroes(_, { product =>
-          sgnSet(product, sgnProd(lhsSgn, rhsSgn))
-          f(product)
-        }) })
+    withSgn(lhs, { (lhsSgn: Int) =>
+      withSgn(rhs, { (rhsSgn: Int) =>
+        withMulMag(lhs, rhs, { (t: I) =>
+          withNoLeadingZeroes(t, { (product: I) =>
+            sgnSet(product, sgnProd(lhsSgn, rhsSgn))
+            f(product)
+          })
+        })
       })
     })
   }
@@ -132,8 +134,8 @@ private[big] abstract class BaselessArrayInt extends Big {
 
   def cmp(lhs: I, rhs: I): Int = {
     var ret = 0
-    withSgn(lhs, { lhsSgn =>
-      withSgn(rhs, { rhsSgn0 =>
+    withSgn(lhs, { (lhsSgn: Int) =>
+      withSgn(rhs, { (rhsSgn0: Int) =>
         val rhsSgn = if (lhs eq rhs) lhsSgn else rhsSgn0 // XXX work around mut.
         ret = if (lhsSgn == rhsSgn) lhsSgn * cmpMag(lhs, rhs)
         else cmpElem(lhsSgn, rhsSgn)
@@ -143,15 +145,15 @@ private[big] abstract class BaselessArrayInt extends Big {
   }
 
   private val hexDigitWidth = (baseLog + 3) / 4
-  private[big] def repr(n: I) = withSgn(n, { sgn =>
+  private[big] def repr(n: I) = withSgn(n, { (sgn: Int) =>
     (if (sgn < 0) "-" else "") + n.map(s"%${hexDigitWidth}X" format _).mkString
   })
 
   // implementation details
 
   private val one = {
-    var ret: I = null
-    fromInt(1, { ret = _ })
+    var ret: I = uninit()
+    fromInt(1, { (n: I) => ret = n })
     ret
   }
 
@@ -179,9 +181,9 @@ private[big] abstract class BaselessArrayInt extends Big {
     val c = cmpMag(lhs, rhs)
     if (c == 0) fromInt(0, f)
     else {
-      def k(tmp: I) = withNoLeadingZeroes(tmp, { f(_) })
-      if (c > 0) withSubMag(lhs, rhs, { k(_) })
-      else withSubMag(rhs, lhs, { k(_) })
+      def k(tmp: I) = withNoLeadingZeroes(tmp, f)
+      if (c > 0) withSubMag(lhs, rhs, k)
+      else withSubMag(rhs, lhs, k)
     }
   }
 
@@ -296,13 +298,13 @@ private[big] abstract class BaselessArrayInt extends Big {
 
     def binarySearch(lo: I, hi: I): U = {
       if (cmp(lo, hi) < 0) {
-        withAddMag(hi, one, { hiPlus1 =>
-          withAddMag(lo, hiPlus1, {
-            withDiv2Mag(_, { mid =>
-              withMul(mid, rhs, { product =>
+        withAddMag(hi, one, { (hiPlus1: I) =>
+          withAddMag(lo, hiPlus1, { (twiceMid: I) =>
+            withDiv2Mag(twiceMid, { (mid: I) =>
+              withMul(mid, rhs, { (product: I) =>
                 if (cmp(product, lhs) <= 0)
                   binarySearch(mid, hi)
-                else withSubMag(mid, one, { hiNext =>
+                else withSubMag(mid, one, { (hiNext: I) =>
                   binarySearch(lo, hiNext)
                 })
               })
@@ -311,8 +313,8 @@ private[big] abstract class BaselessArrayInt extends Big {
         })
       } else f(lo)
     }
-    withPowBase(loLog, { lo =>
-      withPowBase(hiLog, { hi =>
+    withPowBase(loLog, { (lo: I) =>
+      withPowBase(hiLog, { (hi: I) =>
         binarySearch(lo, hi)
       })
     })
@@ -423,7 +425,7 @@ private[big] abstract class BaselessListInt extends Big {
 
   def cmp(lhs0: I, rhs0: I): Int = {
     var ret = 0
-    reverse(lhs0, { lhs0 => reverse(rhs0, { rhs0 =>
+    reverse(lhs0, { (lhs0: I) => reverse(rhs0, { (rhs0: I) =>
       def rec(lhs: I, rhs: I) = {
         val moreLhs = lhs.nonEmpty
         val moreRhs = rhs.nonEmpty

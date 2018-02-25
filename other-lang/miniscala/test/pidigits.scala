@@ -35,7 +35,6 @@ class BigIntWrapperTest extends AbstractTest {
   @Test def test1000DigitsSHA = apply(1000, mkSHA1Checker)
 }
 
-@org.junit.Ignore // FIXME failing
 class ArrayIntTest extends AbstractTest {
   import ArrayInt._
 

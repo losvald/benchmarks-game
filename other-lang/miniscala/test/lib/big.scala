@@ -353,6 +353,76 @@ class ArrayIntAddAndSub extends ToUtil(Base16ArrayInt) {
   }
 }
 
+class ArrayIntDiv extends ToUtil(Base16ArrayInt) {
+  import module._
+
+  @Test def test1DigitMagDiv2 = {
+    for (i <- Seq(1, 3, 4, 0xA, 0xF))
+      withDiv2Mag(I(i)) { act => assertArrayEquals(I(i / 2), act) }
+  }
+
+  @Test def testManyDigitMagDiv2 = {
+    for {
+      half <- Seq(0xDEAD, 0xBEEF, 0x1002); exp = toBig(half)
+      n <- Seq(2*half, 2*half + 1).map(toBig(_))
+    } {
+      withDiv2Mag(n) { act =>
+        assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+      }
+    }
+  }
+
+  @Test def testMagDiv2Borrow = {
+    withDiv2Mag(toBig(0xBBBC)) { act =>
+      val exp = toBig(0x5DDE)
+      assertArrayEquals(s"\nexp: ${repr(exp)}\nact: ${repr(act)}\n", exp, act)
+    }
+  }
+
+  @Test def testManyDigitMagDiv1Digit = {
+    for {
+      digit <- Seq(3, 5, 0xA)
+      factor <- Seq(0xDEAD, 0xBEEF, 0x1002); exp = toBig(factor)
+      i = factor * digit
+    } {
+      withDivMag(toBig(i), I(digit)) { act =>
+        assertArrayEquals(
+          f"$i%X/$digit%X\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
+          exp, act)
+      }
+    }
+  }
+
+  @Test def testManyDigitDivManyDigitBothPos = {
+    for ((lhs, rhs) <- toBigPairs(
+      (0x102FB, 0x23), (0xCAFE100, 0x807), (0x101, 0x81), (0x3010CAB, 0x2345),
+      (0x3098, 0x3100), (0x344, 0x344)
+    )) {
+      withDiv(lhs, rhs) { act =>
+        val exp = toBig(toInt(lhs) / toInt(rhs))
+        assertArrayEquals(
+          s"${repr(lhs)}/${repr(rhs)}\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
+          exp, act)
+      }
+    }
+  }
+
+  @Test def testRandom = {
+    val r = new Random(1)
+    for (itr <- 1 to 200) {
+      val lhsInt = r.nextInt & 0x7FFFFFFF
+      val rhsInt = r.nextInt(lhsInt) + 1
+      val (lhs, rhs) = (toBig(lhsInt), toBig(rhsInt))
+      val exp = toBig(lhsInt / rhsInt)
+      withDiv(lhs, rhs) { act =>
+        assertArrayEquals(
+          s"${repr(lhs)}/${repr(rhs)}\nexp: ${repr(exp)}\nact: ${repr(act)}\n",
+          exp, act)
+      }
+    }
+  }
+}
+
 
 // ListInt tests
 

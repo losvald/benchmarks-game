@@ -300,7 +300,6 @@ private[big] abstract class BaselessArrayInt extends Big {
     var hi = uninit; withPowBase(hiLog) { hi = _ }
 
     while (cmp(lo, hi) < 0) {
-      // TODO signedness?
       var mid = uninit
       withAddMag(hi, one) { hiPlus1 =>
         withAddMag(lo, hiPlus1) {
@@ -308,7 +307,7 @@ private[big] abstract class BaselessArrayInt extends Big {
         }
       }
 
-      withMulMag(mid, rhs) { product =>
+      withMul(mid, rhs) { product =>
         if (cmp(product, lhs) <= 0) lo = mid
         else withSubMag(mid, one) { hi = _ }
       }
@@ -328,6 +327,7 @@ private[big] abstract class BaselessArrayInt extends Big {
       while (lhsIdx < lhsEnd) {
         val d = lhs(lhsIdx) + base * borrow
         ret(lhsIdx - lhsBeg) = d / 2
+        borrow = d % 2
         lhsIdx = lhsIdx + 1
       }
       f(ret)

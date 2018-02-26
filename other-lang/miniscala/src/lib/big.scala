@@ -13,6 +13,7 @@ trait Big {
   def withSub[U](lhs: I, rhs: I, f: I => U): U
   def withMul[U](lhs: I, rhs: I, f: I => U): U
   def withDiv[U](lhs: I, rhs: I, f: I => U): U
+  def cmp(lhs: I, rhs: I): Int
 
   implicit class Ops(private val lhs: I) {
     // Note: assume == and != already does the right thing
@@ -22,8 +23,6 @@ trait Big {
     def >=(rhs: I) = cmp(lhs, rhs) >= 0
     def intValue = toInt(lhs)
   }
-
-  protected def cmp(lhs: I, rhs: I): Int
 
   private[big] val baseLog: Int // for fast mult/div by: <</>> base
   private[big] lazy val base = 1 << baseLog
@@ -40,8 +39,13 @@ object ArrayInt extends BaselessArrayInt {
 private[big] abstract class BaselessArrayInt extends Big {
   type I = Array[Int]
   private[big] val I = Array
-
   def uninit() = new I(0);
+
+  // sed -e 's/\bI\b/Array[Int]/g' -e 's/\beq\b/==/g' -e 's/fromInt/withBigFromInt/g' -e 's/toInt/&FromBig/g' -e 's/\b\(cmp\|with\(Add\|Sub\|Mul\|Div\)\)\b/\1Big/g' -e 's/private\(\[[^]]*\]\)\? \(def\|val\)/\2/g' -e 's/\w*\(Mag\|sgn\|Prod\|[bB]ase\|Zero\|Elem\)\w*/big_&/g'
+  // BEGIN valid miniscala (except private modifiers)
+
+  private val one = { var ret: I = new I(1); ret(0) = 1; ret };
+
   def fromInt[U](i0: Int, f: I => U): U = {
     val sign = cmpElem(i0, 0);
     val i = if (sign < 0) -i0 else i0;
@@ -63,7 +67,7 @@ private[big] abstract class BaselessArrayInt extends Big {
     f(ret)
   };
   def toInt(n: I): Int = {
-    withSgn(n, (sgn: Int) => {
+    withSgn[Int](n, (sgn: Int) => {
       var ret = 0;
       var i = 0;
       while (i < n.length) {
@@ -75,18 +79,18 @@ private[big] abstract class BaselessArrayInt extends Big {
   };
 
   def withAdd[U](lhs: I, rhs: I, f: I => U): U = {
-    withSgn(lhs, (lhsSgn: Int) => {
-      withSgn(rhs, (rhsSgn: Int) => {
+    withSgn[U](lhs, (lhsSgn: Int) => {
+      withSgn[U](rhs, (rhsSgn: Int) => {
         if (rhsSgn == 0) f(lhs)
         else if (lhsSgn == 0) f(rhs)
         else if (lhsSgn == rhsSgn) {
-          withAddMag(lhs, rhs, (sum: I) => {
+          withAddMag[U](lhs, rhs, (sum: I) => {
             sgnSet(sum, lhsSgn);
             f(sum)
           })
         }
         else {
-          withMagDiff(lhs, rhs, (sum: I) => {
+          withMagDiff[U](lhs, rhs, (sum: I) => {
             sgnSet(sum, sgnProd(lhsSgn, cmp(lhs, rhs)));
             f(sum)
           })
@@ -100,13 +104,13 @@ private[big] abstract class BaselessArrayInt extends Big {
     if (sgn(rhs) == 0) f(lhs)
     else if (sgn(lhs) == 0) f(rhs)
     else {
-      withSgn(lhs, (lhsSgn: Int) => {
-        withSgn(rhs, (rhsSgn: Int) => {
+      withSgn[U](lhs, (lhsSgn: Int) => {
+        withSgn[U](rhs, (rhsSgn: Int) => {
           def k(retMag: I, sign: Int) = { sgnSet(retMag, sign); f(retMag) };
-          if (lhsSgn != rhsSgn) withAddMag(lhs, rhs, (retMag: I) => {
+          if (lhsSgn != rhsSgn) withAddMag[U](lhs, rhs, (retMag: I) => {
             k(retMag, lhsSgn)
           })
-          else withMagDiff(lhs, rhs, (retMag: I) => {
+          else withMagDiff[U](lhs, rhs, (retMag: I) => {
             k(retMag, sgnProd(lhsSgn, cmp(lhs, rhs)))
           })
         })
@@ -114,10 +118,10 @@ private[big] abstract class BaselessArrayInt extends Big {
     }
   };
   def withMul[U](lhs: I, rhs: I, f: I => U): U = {
-    withSgn(lhs, (lhsSgn: Int) => {
-      withSgn(rhs, (rhsSgn: Int) => {
-        withMulMag(lhs, rhs, (t: I) => {
-          withNoLeadingZeroes(t, (product: I) => {
+    withSgn[U](lhs, (lhsSgn: Int) => {
+      withSgn[U](rhs, (rhsSgn: Int) => {
+        withMulMag[U](lhs, rhs, (t: I) => {
+          withNoLeadingZeroes[U](t, (product: I) => {
             sgnSet(product, sgnProd(lhsSgn, rhsSgn));
             f(product)
           })
@@ -128,34 +132,21 @@ private[big] abstract class BaselessArrayInt extends Big {
   def withDiv[U](lhs: I, rhs: I, f: I => U): U = {
     val c = cmpMag(lhs, rhs);
     if (c == 0) f(one)
-    else if (c < 0) fromInt(0, f)
-    else withDivMag(lhs, rhs, f)
+    else if (c < 0) fromInt[U](0, f)
+    else withDivMag[U](lhs, rhs, f)
   };
 
   def cmp(lhs: I, rhs: I): Int = {
-    var ret = 0;
-    withSgn(lhs, (lhsSgn: Int) => {
-      withSgn(rhs, (rhsSgn0: Int) => {
+    withSgn[Int](lhs, (lhsSgn: Int) => {
+      withSgn[Int](rhs, (rhsSgn0: Int) => {
         val rhsSgn = if (lhs eq rhs) lhsSgn else rhsSgn0; // XXX work around mut
-        ret = if (lhsSgn == rhsSgn) lhsSgn * cmpMag(lhs, rhs)
+        if (lhsSgn == rhsSgn) lhsSgn * cmpMag(lhs, rhs)
         else cmpElem(lhsSgn, rhsSgn)
       })
-    });
-    ret
+    })
   };
-
-  private val hexDigitWidth = (baseLog + 3) / 4
-  private[big] def repr(n: I) = withSgn(n, (sgn: Int) => {
-    (if (sgn < 0) "-" else "") + n.map(s"%${hexDigitWidth}X" format _).mkString
-  })
 
   // implementation details
-
-  private val one = {
-    var ret: I = uninit();
-    fromInt(1, (n: I) => { ret = n })
-    ret
-  };
 
   private def cmpElem(lhs: Int, rhs: Int) =
     (if (lhs > rhs) 1 else 0) - (if (lhs < rhs) 1 else 0);
@@ -179,16 +170,16 @@ private[big] abstract class BaselessArrayInt extends Big {
 
   private def withMagDiff[U](lhs: I, rhs: I, f: I => U): U = {
     val c = cmpMag(lhs, rhs);
-    if (c == 0) fromInt(0, f)
+    if (c == 0) fromInt[U](0, f)
     else {
-      def k(tmp: I) = withNoLeadingZeroes(tmp, f);
-      if (c > 0) withSubMag(lhs, rhs, k)
-      else withSubMag(rhs, lhs, k)
+      def k(tmp: I) = withNoLeadingZeroes[U](tmp, f);
+      if (c > 0) withSubMag[U](lhs, rhs, k)
+      else withSubMag[U](rhs, lhs, k)
     }
   };
 
   private def withAddMag[U](lhs: I, rhs: I, f: I => U): U = {
-    if (lhs.length < rhs.length) withAddMag(rhs, lhs, f)
+    if (lhs.length < rhs.length) withAddMag[U](rhs, lhs, f)
     else {
       val ret = new I(lhs.length);
       var lhsIdx = lhs.length;
@@ -297,13 +288,13 @@ private[big] abstract class BaselessArrayInt extends Big {
 
     def binarySearch(lo: I, hi: I): U = {
       if (cmp(lo, hi) < 0) {
-        withAddMag(hi, one, (hiPlus1: I) => {
-          withAddMag(lo, hiPlus1, (twiceMid: I) => {
-            withDiv2Mag(twiceMid, (mid: I) => {
-              withMul(mid, rhs, (product: I) => {
+        withAddMag[U](hi, one, (hiPlus1: I) => {
+          withAddMag[U](lo, hiPlus1, (twiceMid: I) => {
+            withDiv2Mag[U](twiceMid, (mid: I) => {
+              withMul[U](mid, rhs, (product: I) => {
                 if (cmp(product, lhs) <= 0)
                   binarySearch(mid, hi)
-                else withSubMag(mid, one, (hiNext: I) => {
+                else withSubMag[U](mid, one, (hiNext: I) => {
                   binarySearch(lo, hiNext)
                 })
               })
@@ -312,16 +303,19 @@ private[big] abstract class BaselessArrayInt extends Big {
         })
       } else f(lo)
     };
-    withPowBase(loLog, (lo: I) => {
-      withPowBase(hiLog, (hi: I) => {
+    withPowBase[U](loLog, (lo: I) => {
+      withPowBase[U](hiLog, (hi: I) => {
         binarySearch(lo, hi)
       })
     })
   };
 
   private[big] def withDiv2Mag[U](lhs: I, f: I => U): U = {
-    if (lhs.length == 1) f(I(lhs(0) / 2))
-    else {
+    if (lhs.length == 1) {
+      val ret = new I(1);
+      ret(0) = lhs(0) / 2;
+      f(ret)
+    } else {
       var borrow = (if (lhs(0) == 1) 1 else 0);
       var lhsBeg = borrow;
       var lhsEnd = lhs.length;
@@ -361,7 +355,7 @@ private[big] abstract class BaselessArrayInt extends Big {
 
   private[big] def sgn(n: I): Int = {
     if (n.length == 0 || n(0) == 0) 0
-    else if (n(0) > 0) +1
+    else if (n(0) > 0) 1
     else -1
   };
 
@@ -390,6 +384,13 @@ private[big] abstract class BaselessArrayInt extends Big {
     if (s == 0) n(0) = 0
     else if (n.length != 0) n(0) = sgnProd(s, cmpElem(n(0), 0)) * n(0)
   };
+
+  // END valid miniscala (except private modifiers)
+
+  private val hexDigitWidth = (baseLog + 3) / 4
+  private[big] def repr(n: I) = withSgn(n, (sgn: Int) => {
+    (if (sgn < 0) "-" else "") + n.map(s"%${hexDigitWidth}X" format _).mkString
+  })
 }
 
 
@@ -453,8 +454,7 @@ object BigIntWrapper extends Big {
   def withSub[R](lhs: BigInt, rhs: BigInt, f: BigInt => R) = f(lhs - rhs)
   def withMul[R](lhs: BigInt, rhs: BigInt, f: BigInt => R) = f(lhs * rhs)
   def withDiv[R](lhs: BigInt, rhs: BigInt, f: BigInt => R) = f(lhs / rhs)
-
-  protected def cmp(lhs: I, rhs: I): Int = lhs.compare(rhs)
+  def cmp(lhs: I, rhs: I): Int = lhs.compare(rhs)
 
   private[big] val baseLog = 0 // dummy value
 

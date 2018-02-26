@@ -360,7 +360,7 @@ private[big] abstract class BaselessArrayInt extends Big {
   };
 
   private[big] def sgn(n: I): Int = {
-    if (n.isEmpty || n(0) == 0) 0
+    if (n.length == 0 || n(0) == 0) 0
     else if (n(0) > 0) +1
     else -1
   };
@@ -388,7 +388,7 @@ private[big] abstract class BaselessArrayInt extends Big {
   private[big] def sgnSet(n: I, s: Int): Unit = {
     // TODO what if s == 0 and n non-empty?
     if (s == 0) n(0) = 0
-    else if (n.nonEmpty) n(0) = sgnProd(s, cmpElem(n(0), 0)) * n(0)
+    else if (n.length != 0) n(0) = sgnProd(s, cmpElem(n(0), 0)) * n(0)
   };
 }
 

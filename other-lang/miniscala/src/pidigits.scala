@@ -18,43 +18,57 @@ class CPS[M <: lib.big.Big](protected val module: M) {
     def rec(i: Int, nDivK: BigInt, d0: BigInt, a0: BigInt): Unit = {
       if (i < limit) {
         k = k + 1;
-        withMul(nDivK, kTwo, (t0: BigInt) => {
-          withBigFromInt(k, (kBig: BigInt) => {
-            withMul(nDivK, kBig, (n: BigInt) => {
-              withBigFromInt(2*k + 1, (k2: BigInt) => {
-                withAdd(a0, t0, (a0t0sum: BigInt) => {
-                  withMul(a0t0sum, k2, (a: BigInt) => {
-                    withMul(d0, k2, (d: BigInt) => {
-                      if (a >= n) {
-                        withMul(n, kThree, (nMul3: BigInt) => {
-                          withAdd(nMul3, a, (three_n_plus_a: BigInt) => {
-                            withDiv(three_n_plus_a, d, (t: BigInt) => {
-                              // u = three_n_plus_a % d + n;
-                              withMul(t, d, (td: BigInt) => {
-                                withSub(three_n_plus_a, td, (u_n: BigInt) => {
-                                  withAdd(u_n, n, (u: BigInt) => {
-                                    if (d > u) {
-                                      ns = ns * 10 + t.intValue;
-                                      val iNext = i + 1;
-                                      if (iNext % 5 == 0) {
-                                        report5(ns);
-                                        ns = 0
-                                      };
-                                      withSub(a, td, (a_td: BigInt) => {
-                                        withMul(a_td, kTen, (aNext: BigInt) => {
-                                          withMul(n, kTen, (n10: BigInt) => {
-                                            rec(iNext, n10, d, aNext)
-                                      }) }) })
-                                    } else
-                                      rec(i, n, d, a)
-                              }) }) })
-                        }) }) })
-                      } else
-                        rec(i, n, d, a)
+        withMul[Unit](nDivK, kTwo, (t0: BigInt) => {
+          withBigFromInt[Unit](k, (kBig: BigInt) => {
+            withMul[Unit](nDivK, kBig, (n: BigInt) => {
+              withBigFromInt[Unit](2*k + 1, (k2: BigInt) => {
+                withAdd[Unit](a0, t0, (a0t0sum: BigInt) => {
+                  withMul[Unit](a0t0sum, k2, (a: BigInt) => {
+                    withMul[Unit](d0, k2, (d: BigInt) => {
+                      rec2(i, n, d, a)
               }) }) }) })
         }) }) })
       }
     };
+
+    def rec2(i: Int, n: BigInt, d: BigInt, a: BigInt): Unit = {
+      if (cmp(a, n) >= 0) {
+        withMul[Unit](n, kThree, (nMul3: BigInt) => {
+          withAdd[Unit](nMul3, a, (three_n_plus_a: BigInt) => {
+            withDiv[Unit](three_n_plus_a, d, (t: BigInt) => {
+              // u = three_n_plus_a % d + n;
+              withMul[Unit](t, d, (td: BigInt) => {
+                withSub[Unit](three_n_plus_a, td, (u_n: BigInt) => {
+                  withAdd[Unit](u_n, n, (u: BigInt) => {
+                    if (cmp(d, u) > 0) {
+                      ns = ns * 10 + t.intValue;
+                      val iNext = i + 1;
+                      if (iNext % 5 == 0) {
+                        report5(ns);
+                        ns = 0
+                      };
+                      withNextNAndA[Unit](a, n, td,
+                        (n10: BigInt, aNext: BigInt) => {
+                          rec(iNext, n10, d, aNext)
+                      })
+                    } else
+                      rec(i, n, d, a)
+                  }) }) })
+            }) }) })
+      } else
+        rec(i, n, d, a)
+    };
+
+    def withNextNAndA[U](a: BigInt, n: BigInt, td: BigInt,
+      f: (BigInt, BigInt) => U
+    ): U = {
+      withSub[U](a, td, (a_td: BigInt) => {
+        withMul[U](a_td, kTen, (aNext: BigInt) => {
+          withMul[U](n, kTen, (n10: BigInt) => {
+            f(n10, aNext)
+      }) }) })
+    };
+
     rec(0, kOne, kOne, kZero)
   }
 

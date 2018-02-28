@@ -27,12 +27,35 @@ protected abstract class AbstractTest {
       }
     }
   }
+
+  def mkMul31HalfHashChecker = {
+    val exp = Map(
+      10 -> 289785,
+      20 -> 70094125,
+      40 -> -705203370,
+      200 -> 181146281,
+      500 -> 358633796,
+      1000 -> -780802796,
+      10000 -> -653198279,
+    )
+    var mul31HalfHash = 0
+    var i = 0
+    (n: Int) => {
+      mul31HalfHash = (mul31HalfHash*31 + n) >> 1
+      i += 5
+      exp.get(i) map (assertEquals(s"@$i", _, mul31HalfHash))
+      ()
+    }
+  }
 }
 
 class BigIntWrapperTest extends AbstractTest {
   import BigIntWrapper._
 
   @Test def test1000DigitsSHA = apply(1000, mkSHA1Checker)
+
+  @Test def test40DigitsMul31HalfHash = apply(40, mkMul31HalfHashChecker)
+  @Test def test500DigitsMul31HalfHash = apply(500, mkMul31HalfHashChecker)
 }
 
 class ArrayIntTest extends AbstractTest {
@@ -41,4 +64,6 @@ class ArrayIntTest extends AbstractTest {
   @Test def test60DigitsSHA = apply(60, mkSHA1Checker)
   @Test def test200DigitsSHA = apply(200, mkSHA1Checker)
   @Test def test1000DigitsSHA = apply(1000, mkSHA1Checker)
+
+  @Test def test40DigitsMul31HalfHash = apply(40, mkMul31HalfHashChecker)
 }

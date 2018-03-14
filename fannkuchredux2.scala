@@ -64,8 +64,8 @@ def fannkuch(n: Int): Int = {
   maxFlipsCount
 };
 
-val result@ = fannkuch(5);
-if (result == 7) {
+val result@ = fannkuch(7);
+if (result == 16) {
   printChar('O'); printChar('K')
 } else {
   printInt(result)

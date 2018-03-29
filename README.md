@@ -9,3 +9,8 @@ Unless Git have done it for you (e.g., via
 `git clone --recurse-submodules`),
 you need to create symbolic links in your MiniScala(2)'s `library` to
 reference the corresponding libraries in the `lib` directory.
+
+## Correctness and test cases
+
+The MiniScala ports are tested in the full-fledged Scala: see the project rooted at
+`other-lang/miniscala/`, from which the MiniScala ports are largely auto-generated.
